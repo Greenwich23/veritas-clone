@@ -26,12 +26,12 @@ function Sidebar({ isCollapsed, toggleSidebar }) {
 
   return (
     <aside
-      className={`hidden md:flex flex-col bg-[#343a40] text-slate-200 transition-all duration-300 ${
+      className={`hidden md:flex flex-col bg-[#343a40] text-slate-200 transition-all -mt-16 duration-300 ${
         isCollapsed ? "w-20" : "w-57"
       } shrink-0`}
     >
       <div
-        className={`flex items-center gap-3 px-5 h-16 border-b border-slate-700/60 ${
+        className={`flex items-center gap-3 px-5 h-16 border-4 border-b border-slate-700/60 ${
           isCollapsed ? "justify-center" : ""
         }`}
       >
