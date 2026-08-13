@@ -15,7 +15,10 @@ export default function Layout() {
     <div className="flex h-screen w-full bg-slate-100 font-sans">
       <Sidebar isCollapsed={isSidebarCollapsed} toggleSidebar={toggleSidebar} />
       <div className="flex-1 flex flex-col min-w-0">
-        <Topbar toggleSidebar={toggleSidebar} />
+        <Topbar
+          toggleSidebar={toggleSidebar}
+          isCollapsed={isSidebarCollapsed}
+        />
         <main className="flex-1 overflow-y-auto">
           <Outlet />
         </main>

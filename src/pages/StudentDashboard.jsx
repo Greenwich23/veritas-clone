@@ -60,7 +60,7 @@ const quickLinks = [
     color: "bg-emerald-700",
     title: "Pay Tuition Fee",
     subtitle: "Tuition & hostel payment",
-    page: "",
+    page: "payments/select-hostel",
   },
   {
     icon: ClipboardList,
@@ -122,14 +122,14 @@ const quickLinks = [
 
 function ProfileCard() {
   return (
-<div className="rounded-lg bg-gradient-to-r from-slate-700 to-blue-800 text-white py-10 px-7 flex items-center gap-5 shadow-sm">
-  <div className="w-[70px] h-[70px] rounded-full overflow-hidden flex-shrink-0">
-    <img
-      className="w-full h-full object-cover rounded-full"
-      src="https://i.ibb.co/tMvdmvHL/image.png"
-      alt="Profile"
-    />
-  </div>
+    <div className="rounded-lg bg-gradient-to-r from-slate-700 to-blue-800 text-white py-10 px-7 flex items-center gap-5 shadow-sm">
+      <div className="w-[70px] h-[70px] rounded-full overflow-hidden flex-shrink-0">
+        <img
+          className="w-full h-full object-cover rounded-full"
+          src="https://i.ibb.co/tMvdmvHL/image.png"
+          alt="Profile"
+        />
+      </div>
 
       <div>
         <h2 className="text-xl font-bold leading-tight text-[1.45rem]">
@@ -186,10 +186,10 @@ export default function StudentDashboard() {
 
   return (
     <div className="flex h-screen w-full bg-slate-100 font-sans">
-      <Sidebar isCollapsed={isSidebarCollapsed} toggleSidebar={toggleSidebar} />
+      {/* <Sidebar isCollapsed={isSidebarCollapsed} toggleSidebar={toggleSidebar} /> */}
 
       <div className="flex-1 flex flex-col min-w-0">
-        <Topbar toggleSidebar={toggleSidebar} />
+        {/* <Topbar toggleSidebar={toggleSidebar} /> */}
 
         <main className="flex-1 overflow-y-auto">
           {/* Rest of your JSX remains the same */}
@@ -228,4 +228,3 @@ export default function StudentDashboard() {
     </div>
   );
 }
-

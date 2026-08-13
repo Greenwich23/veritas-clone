@@ -1,0 +1,5 @@
+.sdsd:hover {
+  transform: translateX(3px);
+  background-color: rgba(26, 54, 93, 0.3);
+  border: solid 1px rgba(26, 54, 93, 0.3);
+}
