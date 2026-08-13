@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import React, { useState } from "react";
 import {
   CreditCard,
@@ -6,8 +5,8 @@ import {
   ArrowRight,
   ChevronLeft,
 } from "lucide-react";
-import Sidebar from "../components/Sidebar";
-import Topbar from "../components/Topbar";
+import { STORAGE_KEY, FEE_CATALOG, todayISO } from "./feeData";
+import { useNavigate } from "react-router-dom";
 
 function Breadcrumb() {
   return (
@@ -71,71 +70,93 @@ export default function OtherFeesPayment() {
   const [feeCategory, setFeeCategory] = useState("Carryover Course");
   const [quantity, setQuantity] = useState("1");
   const [session, setSession] = useState("2026/2027");
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
-  const toggleSidebar = () => {
-    setIsSidebarCollapsed(!isSidebarCollapsed);
+  const navigate = useNavigate();
+
+  const handleContinue = () => {
+    const fee = FEE_CATALOG[feeCategory];
+    const qty = Number(quantity);
+    const selection = {
+      feeCategory,
+      quantity: qty,
+      session,
+      amount: fee.amount,
+      totalAmount: fee.amount * qty,
+      paymentType: fee.paymentType,
+      initiatedDate: todayISO(),
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(selection));
+    navigate("/payments/other-payment/checkout");
   };
 
   return (
-    <div className="flex h-screen w-full bg-slate-100 font-sans">
-      <Sidebar isCollapsed={isSidebarCollapsed} toggleSidebar={toggleSidebar} />
+    <>
+      <Breadcrumb />
 
-      <div className="flex-1 flex flex-col min-w-0">
-        <Topbar toggleSidebar={toggleSidebar} />
-
-        <main className="flex-1 overflow-y-auto">
-          <Breadcrumb />
-
-          <div className="px-4 md:px-8">
-            <IntroBanner />
-          </div>
-
-          <div className="px-4 md:px-8 mt-7 flex items-center gap-2">
-            <ClipboardList size={18} className="text-blue-600" />
-            <h3 className="font-semibold text-slate-800 text-[17px]">
-              Payment processing
-            </h3>
-          </div>
-          <div className="h-px bg-slate-200 mx-4 md:mx-8 mt-3" />
-
-          <div className="px-4 md:px-8 py-6 w-[100%]">
-            <div className="bg-white rounded-lg border border-slate-200 p-6 md:p-8">
-              <SelectField
-                label="Fee category"
-                value={feeCategory}
-                onChange={(e) => setFeeCategory(e.target.value)}
-                options={[
-                  "Carryover Course",
-                  "Outstanding Tuition Fee",
-                  "Hostel Fee",
-                  "Late Registration",
-                  "Miscellaneous Dues",
-                ]}
-              />
-              <SelectField
-                label="Quantity"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-                options={["1", "2", "3", "4", "5"]}
-              />
-              <SelectField
-                label="Session"
-                value={session}
-                onChange={(e) => setSession(e.target.value)}
-                options={["2026/2027", "2025/2026", "2024/2025"]}
-              />
-
-              <div className="flex justify-end pt-2">
-                <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-md transition-colors">
-                  Continue
-                  <ArrowRight size={18} />
-                </button>
-              </div>
-            </div>
-          </div>
-        </main>
+      <div className="px-4 md:px-8">
+        <IntroBanner />
       </div>
-    </div>
+
+      <div className="px-4 md:px-8 mt-7 flex items-center gap-2">
+        <ClipboardList size={18} className="text-blue-600" />
+        <h3 className="font-semibold text-slate-800 text-[17px]">
+          Payment processing
+        </h3>
+      </div>
+      <div className="h-px bg-slate-200 mx-4 md:mx-8 mt-3" />
+
+      <div className="px-4 md:px-3 py-3 w-full">
+        <div className="bg-white rounded-lg border border-slate-200 p-2 md:p-4">
+          <SelectField
+            label="Fee category"
+            value={feeCategory}
+            onChange={(e) => setFeeCategory(e.target.value)}
+            options={[
+              "Outstanding Tuition Fee",
+              "Carryover Course",
+              "Summer/Resit Course",
+              "Replacement of ID Card",
+              "CISCO",
+              "Faculty/Departmental Due (Faculty of NAS, COP, EDU, MGT, HUM, SOS, PHL & THE)",
+              "SRA Dues",
+              "Faculty of Law Dues",
+              "Medical Screening Test",
+              "NFCS Dues",
+              "Postgraduate Faculty Due",
+              "Clinical Services for Health Science Student",
+              "Project Binding Fees",
+              "Community Mass",
+              "School to Work",
+              "Faculty of pharmaceutical Dues(Pharmacy Students)",
+              "Faculty of Health Science -Dues(Nursing & Medical Lab Students)",
+              "Faculty of Engineering -Dues(Computer & Electrical Engineering Students)",
+              "NDLEA Drug Test",
+            ]}
+          />
+          <SelectField
+            label="Quantity"
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
+            options={["1", "2", "3", "4", "5"]}
+          />
+          <SelectField
+            label="Session"
+            value={session}
+            onChange={(e) => setSession(e.target.value)}
+            options={["2026/2027", "2025/2026", "2024/2025"]}
+          />
+
+          <div className="flex justify-end pt-2">
+            <button
+              onClick={handleContinue}
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-md transition-colors"
+            >
+              Continue
+              <ArrowRight size={18} />
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
