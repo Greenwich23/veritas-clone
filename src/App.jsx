@@ -1,5 +1,7 @@
 import StudentDashboard from "./pages/StudentDashboard";
 import OtherFeesPayment from "./pages/OtherFeesPayment";
+import Academics from "./pages/Academics";
+import Topbar from "./components/Topbar";
 import { Routes, Route } from "react-router-dom";
 import "./index.css";
 import PaymentAnalysis from "./pages/PaymentAnalysis";
