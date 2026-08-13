@@ -6,7 +6,7 @@ import { NavLink } from "react-router-dom";
 
 function Topbar({ toggleSidebar }) {
   return (
-    <header className="fixed top-0 left-57 right-0 z-50 h-16 flex items-center justify-between p-2 bg-green-600 text-white shrink-0">        <div className="flex items-center gap-5">
+    <header className="fixed top-0 left-0 right-0 z-50 h-16 flex items-center justify-between p-2 bg-green-600 text-white shrink-0">        <div className="flex items-center gap-5">
         <button
           className="p-1 hover:bg-white/10 rounded"
           onClick={toggleSidebar}
