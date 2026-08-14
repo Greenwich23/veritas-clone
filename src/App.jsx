@@ -7,6 +7,8 @@ import "./index.css";
 import PaymentAnalysis from "./pages/PaymentAnalysis";
 import Layout from "./components/Layout"; // Import the Layout component
 import SelectHostel from "./pages/SelectHostel";
+import Academics from "./pages/Academics";
+import ViewAvailableBedSpace from "./pages/ViewAvailableBedSpace";
 
 function App() {
   return (
@@ -19,7 +21,11 @@ function App() {
           path="/payments/other-payment/checkout"
           element={<PaymentAnalysis />}
         />
-        <Route path="academics" element={<h1>This is the academics page</h1>} />
+        <Route
+          path="/payments/view-avaliable-hostels"
+          element={<ViewAvailableBedSpace />}
+        />
+        <Route path="/academics" element={<Academics />} />
       </Route>
     </Routes>
   );
