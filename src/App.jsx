@@ -9,25 +9,37 @@ import Layout from "./components/Layout"; // Import the Layout component
 import SelectHostel from "./pages/SelectHostel";
 import Academics from "./pages/Academics";
 import ViewAvailableBedSpace from "./pages/ViewAvailableBedSpace";
+import ScrollToTopSmooth from "./components/ScrollToTop";
+import TuitionAccommodationFee from "./pages/TuitionAccommodationFee";
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Layout />}>
-        <Route index element={<StudentDashboard />} />
-        <Route path="/payments/other-payment" element={<OtherFeesPayment />} />
-        <Route path="/payments/select-hostel" element={<SelectHostel />} />
-        <Route
-          path="/payments/other-payment/checkout"
-          element={<PaymentAnalysis />}
-        />
-        <Route
-          path="/payments/view-avaliable-hostels"
-          element={<ViewAvailableBedSpace />}
-        />
-        <Route path="/academics" element={<Academics />} />
-      </Route>
-    </Routes>
+    <>
+      <ScrollToTopSmooth />
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<StudentDashboard />} />
+          <Route
+            path="/payments/other-payment"
+            element={<OtherFeesPayment />}
+          />
+          <Route path="/payments/select-hostel" element={<SelectHostel />} />
+          <Route
+            path="/payments/other-payment/checkout"
+            element={<PaymentAnalysis />}
+          />
+          <Route
+            path="/payments/view-avaliable-hostels"
+            element={<ViewAvailableBedSpace />}
+          />
+          <Route
+            path="/payments/payment-plan"
+            element={<TuitionAccommodationFee />}
+          />
+          <Route path="/academics" element={<Academics />} />
+        </Route>
+      </Routes>
+    </>
   );
 }
 

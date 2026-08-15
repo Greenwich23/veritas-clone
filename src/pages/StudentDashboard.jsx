@@ -186,12 +186,8 @@ export default function StudentDashboard() {
 
   return (
     <div className="flex h-screen w-full bg-slate-100 font-sans">
-      {/* <Sidebar isCollapsed={isSidebarCollapsed} toggleSidebar={toggleSidebar} /> */}
-
       <div className="flex-1 flex flex-col min-w-0">
-        {/* <Topbar toggleSidebar={toggleSidebar} /> */}
-
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1">
           {/* Rest of your JSX remains the same */}
           <div className="flex items-center justify-between px-4 md:px-4 pt-3 pb-4">
             <h1 className="text-[25px] font-normal text-slate-800 font-extrabold">

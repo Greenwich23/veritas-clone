@@ -167,15 +167,12 @@ export default function ViewAvailableBedSpace() {
     }
   });
 
-  // "Live" spaces still purchasable for this category (can be lower than
-  // the category's listed total spaces, since some students may already
-  // be mid-payment). Regenerated only when the selection changes.
+  // Available spaces mirrors exactly what was shown on the Select Hostel
+  // page for this category, so the number stays consistent across pages.
+  // "alreadyPaid" is just flavor text for the info box and doesn't affect
+  // the available count or the number of bunk cards rendered.
   const { availableSpaces, alreadyPaid, bunks } = useMemo(() => {
-    const total = selection.categorySpaces || 20;
-    const live = Math.min(
-      total,
-      Math.max(5, Math.floor(Math.random() * 25) + 5),
-    );
+    const live = selection.categorySpaces || 20;
     const paid = Math.max(1, Math.floor(Math.random() * 10));
     return {
       availableSpaces: live,
@@ -189,7 +186,7 @@ export default function ViewAvailableBedSpace() {
   return (
     <div className="flex h-screen w-full bg-slate-100 font-sans">
       <div className="flex-1 flex flex-col min-w-0">
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1">
           <Breadcrumb />
 
           <div className="px-4 md:px-8">
@@ -220,7 +217,10 @@ export default function ViewAvailableBedSpace() {
               <ArrowLeft size={16} />
               Back
             </button>
-            <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-md transition-colors">
+            <button
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-md transition-colors"
+              onClick={() => navigate("/payments/payment-plan")}
+            >
               Continue to payment plan
               <ArrowRight size={16} />
             </button>
