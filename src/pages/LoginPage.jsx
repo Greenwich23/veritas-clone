@@ -10,7 +10,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
 
   // Pre-determined login credentials
-  const CORRECT_EMAIL = "VUG/CSC/23/951";
+  const CORRECT_EMAIL = "VUG/CSC/23/9518";
   const CORRECT_PASSWORD = "Hezekiah1234";
 
   const handleSubmit = (e) => {
