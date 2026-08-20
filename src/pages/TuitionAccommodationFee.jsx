@@ -11,7 +11,7 @@ import { STORAGE_KEY as HOSTEL_STORAGE_KEY, STUDENT } from "./hostelData";
 // The original tuition + hostel calculation is kept below
 // in comments so it can easily be restored later.
 // ============================================================
-const DEMO_PAYMENT_AMOUNT = 1000000;
+const DEMO_PAYMENT_AMOUNT = 50;
 
 // Original amounts — kept for when the real calculation is restored.
 // const TUITION_FEE = 2217850;

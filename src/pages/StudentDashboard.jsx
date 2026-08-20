@@ -133,7 +133,7 @@ function ProfileCard() {
 
       <div>
         <h2 className="text-xl font-bold leading-tight text-[1.45rem]">
-          Gowong Hezekiah Yorgi
+          Peter Panan Ezekiel
         </h2>
         <p className="text-sm text-blue-100 mt-1">VUG/CSC/23/9518</p>
         <p className="text-sm text-blue-100 mt-[5px]">

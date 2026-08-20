@@ -1,6 +1,19 @@
 import React, { useState } from "react";
 import {
-  LayoutGrid,Target,CreditCard,Home as HomeIcon,HelpCircle,LogOut,ChevronDown,ChevronRight,Receipt,Wallet,FileText,History,Banknote,      ClipboardCheck,
+  LayoutGrid,
+  Target,
+  CreditCard,
+  Home as HomeIcon,
+  HelpCircle,
+  LogOut,
+  ChevronDown,
+  ChevronRight,
+  Receipt,
+  Wallet,
+  FileText,
+  History,
+  Banknote,
+  ClipboardCheck,
 } from "lucide-react";
 import { useNavigate, useLocation, NavLink } from "react-router-dom";
 
@@ -8,7 +21,7 @@ const navItems = [
   {
     label: "Dashboard",
     icon: LayoutGrid,
-    page: "/",
+    page: "/dashboard",
   },
   {
     label: "Academics",
@@ -85,7 +98,7 @@ function Sidebar({ isCollapsed, toggleSidebar }) {
   const location = useLocation();
 
   const [financeOpen, setFinanceOpen] = useState(
-    location.pathname.startsWith("/payments")
+    location.pathname.startsWith("/payments"),
   );
 
   const isFinanceActive = location.pathname.startsWith("/payments");
@@ -124,18 +137,15 @@ function Sidebar({ isCollapsed, toggleSidebar }) {
       </div>
 
       <nav className="flex-1 py-3 overflow-y-auto scrollbar-hide">
-        {navItems.map(
-          ({ label, icon: Icon, expandable, badge, page }) => {
-            const isActive =
-              label === "Finance"
-                ? isFinanceActive
-                : location.pathname === page;
+        {navItems.map(({ label, icon: Icon, expandable, badge, page }) => {
+          const isActive =
+            label === "Finance" ? isFinanceActive : location.pathname === page;
 
-            return (
-              <React.Fragment key={label}>
-                <button
-                  type="button"
-                  className={`
+          return (
+            <React.Fragment key={label}>
+              <button
+                type="button"
+                className={`
                     w-full flex items-center gap-3
                     px-5 py-3
                     text-[15px]
@@ -147,75 +157,61 @@ function Sidebar({ isCollapsed, toggleSidebar }) {
                         : "text-slate-300 hover:bg-slate-700/40 border-l-4 border-transparent"
                     }
                   `}
-                  title={isCollapsed ? label : ""}
-                  onClick={() => {
-                    if (label === "Finance") {
-                      setFinanceOpen((prev) => !prev);
-                    } else if (page) {
-                      navigate(page);
-                    }
-                  }}
-                >
-                  <Icon size={18} className="shrink-0" />
+                title={isCollapsed ? label : ""}
+                onClick={() => {
+                  if (label === "Finance") {
+                    setFinanceOpen((prev) => !prev);
+                  } else if (page) {
+                    navigate(page);
+                  }
+                }}
+              >
+                <Icon size={18} className="shrink-0" />
 
-                  {!isCollapsed && (
-                    <>
-                      <span className="flex-1 text-left">
-                        {label}
+                {!isCollapsed && (
+                  <>
+                    <span className="flex-1 text-left">{label}</span>
+
+                    {badge && (
+                      <span className="text-[10px] font-semibold bg-red-500 text-white px-1.5 py-0.5 rounded">
+                        {badge}
                       </span>
+                    )}
 
-                      {badge && (
-                        <span className="text-[10px] font-semibold bg-red-500 text-white px-1.5 py-0.5 rounded">
-                          {badge}
-                        </span>
-                      )}
-
-                      {expandable && (
-                        <>
-                          {label === "Finance" ? (
-                            financeOpen ? (
-                              <ChevronDown
-                                size={15}
-                                className="opacity-80"
-                              />
-                            ) : (
-                              <ChevronRight
-                                size={15}
-                                className="opacity-80"
-                              />
-                            )
+                    {expandable && (
+                      <>
+                        {label === "Finance" ? (
+                          financeOpen ? (
+                            <ChevronDown size={15} className="opacity-80" />
                           ) : (
-                            <ChevronRight
-                              size={15}
-                              className="opacity-70"
-                            />
-                          )}
-                        </>
-                      )}
-                    </>
-                  )}
-                </button>
+                            <ChevronRight size={15} className="opacity-80" />
+                          )
+                        ) : (
+                          <ChevronRight size={15} className="opacity-70" />
+                        )}
+                      </>
+                    )}
+                  </>
+                )}
+              </button>
 
-                {label === "Finance" &&
-                  financeOpen &&
-                  !isCollapsed && (
-                    <div className="bg-[#2d3237] border-l border-slate-700/50">
-                      {financeItems.map(
-                        ({
-                          label: subLabel,
-                          icon: SubIcon,
-                          page: subPage,
-                          badge: subBadge,
-                        }) => {
-                          const subActive =
-                            location.pathname === subPage;
+              {label === "Finance" && financeOpen && !isCollapsed && (
+                <div className="bg-[#2d3237] border-l border-slate-700/50">
+                  {financeItems.map(
+                    ({
+                      label: subLabel,
+                      icon: SubIcon,
+                      page: subPage,
+                      badge: subBadge,
+                    }) => {
+                      const subActive = location.pathname === subPage;
 
-                          return (
-                            <button
-                              key={subLabel}
-                              type="button"
-                              onClick={() => navigate(subPage)}
-                              className={`
+                      return (
+                        <button
+                          key={subLabel}
+                          type="button"
+                          onClick={() => navigate(subPage)}
+                          className={`
                                 w-full
                                 flex items-center
                                 gap-3
@@ -229,31 +225,25 @@ function Sidebar({ isCollapsed, toggleSidebar }) {
                                     : "text-slate-400 hover:bg-slate-700/50 hover:text-white"
                                 }
                               `}
-                            >
-                              <SubIcon
-                                size={16}
-                                className="shrink-0"
-                              />
+                        >
+                          <SubIcon size={16} className="shrink-0" />
 
-                              <span className="flex-1 text-left">
-                                {subLabel}
-                              </span>
+                          <span className="flex-1 text-left">{subLabel}</span>
 
-                              {subBadge && (
-                                <span className="text-[9px] font-semibold bg-red-500 text-white px-1.5 py-0.5 rounded">
-                                  {subBadge}
-                                </span>
-                              )}
-                            </button>
-                          );
-                        }
-                      )}
-                    </div>
+                          {subBadge && (
+                            <span className="text-[9px] font-semibold bg-red-500 text-white px-1.5 py-0.5 rounded">
+                              {subBadge}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    },
                   )}
-              </React.Fragment>
-            );
-          }
-        )}
+                </div>
+              )}
+            </React.Fragment>
+          );
+        })}
       </nav>
 
       {/* LOGOUT */}
