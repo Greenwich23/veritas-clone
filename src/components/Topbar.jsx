@@ -22,12 +22,12 @@ function Topbar({ toggleSidebar, isCollapsed }) {
       </div>
       <div className="flex items-center gap-3">
         <span className="font-semibold tracking-wide text-[13px] sm:text-[15px] hidden sm:block text-white/80 hover:text-white transition-colors duration-300 truncate max-w-[120px] md:max-w-[200px]">
-          HEZEKIAH YORGI GOWONG
+          Panan Peter Ezekiel
         </span>
         <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
           <img
             className="w-full h-full object-cover"
-            src="https://i.ibb.co/tMvdmvHL/image.png"
+            src="https://i.ibb.co/WNDMjRX0/download.jpg"
             alt="User Avatar"
           />
         </div>
