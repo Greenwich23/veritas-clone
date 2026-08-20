@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/purity */
 import { useMemo, useState } from "react";
-import { usePaystackPayment } from "react-paystack";
+// import { usePaystackPayment } from "react-paystack";
 import { ArrowRight, Receipt, Info, X, Lightbulb } from "lucide-react";
 import { STORAGE_KEY as HOSTEL_STORAGE_KEY, STUDENT } from "./hostelData";
 
