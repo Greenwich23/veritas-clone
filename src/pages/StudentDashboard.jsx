@@ -126,16 +126,16 @@ function ProfileCard() {
       <div className="w-[70px] h-[70px] rounded-full overflow-hidden flex-shrink-0">
         <img
           className="w-full h-full object-cover rounded-full"
-          src="https://i.ibb.co/tMvdmvHL/image.png"
+          src="https://i.ibb.co/WNDMjRX0/download.jpg"
           alt="Profile"
         />
       </div>
 
       <div>
         <h2 className="text-xl font-bold leading-tight text-[1.45rem]">
-          Peter Panan Ezekiel
+          Panan Peter Ezekiel
         </h2>
-        <p className="text-sm text-blue-100 mt-1">VUG/CSC/23/9518</p>
+        <p className="text-sm text-blue-100 mt-1">VUG/CSC/23/9680</p>
         <p className="text-sm text-blue-100 mt-[5px]">
           Computer Science &middot; 2025/2026
         </p>

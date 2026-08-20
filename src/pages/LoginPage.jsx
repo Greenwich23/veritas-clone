@@ -10,8 +10,8 @@ export default function LoginPage() {
   const [error, setError] = useState("");
 
   // Pre-determined login credentials
-  const CORRECT_EMAIL = "vug/csc/23/9680@nas.veritas.edu.ng";
-  const CORRECT_PASSWORD = "Hezekiah1234";
+  const CORRECT_EMAIL = "VUG/CSC/23/9682";
+  const CORRECT_PASSWORD = "peter1234";
 
   const handleSubmit = (e) => {
     e.preventDefault();
