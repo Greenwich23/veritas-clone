@@ -65,7 +65,7 @@ export const HOSTELS = [
     id: "L",
     name: "HOSTEL L",
     type: "Male hostel",
-    fee: 204000,
+    fee: 228000,
     capacity: 6,
     categories: [{ name: "HOSTEL L", spaces: 61 }],
   },
@@ -73,7 +73,18 @@ export const HOSTELS = [
     id: "M",
     name: "HOSTEL M",
     type: "Male hostel",
-    fee: 204000,
+    fee: 272000,
+    capacity: 6,
+    categories: [
+      { name: "Ground Floor", spaces: 51 },
+      { name: "First Floor", spaces: 76 },
+    ],
+  },
+  {
+    id: "N",
+    name: "HOSTEL N",
+    type: "Male hostel",
+    fee: 272000,
     capacity: 6,
     categories: [
       { name: "Ground Floor", spaces: 51 },
@@ -84,7 +95,7 @@ export const HOSTELS = [
     id: "R",
     name: "HOSTEL R",
     type: "Male hostel",
-    fee: 204000,
+    fee: 380000,
     capacity: 6,
     categories: [
       { name: "Ground Floor", spaces: 109 },
@@ -96,23 +107,11 @@ export const HOSTELS = [
     id: "S",
     name: "HOSTEL S",
     type: "Male hostel",
-    fee: 204000,
+    fee: 380000,
     capacity: 6,
     categories: [
       { name: "Ground Floor", spaces: 182 },
       { name: "First Floor", spaces: 242 },
-    ],
-  },
-  {
-    id: "T",
-    name: "HOSTEL T",
-    type: "Male hostel",
-    fee: 204000,
-    capacity: 6,
-    categories: [
-      { name: "First Floor", spaces: 61 },
-      { name: "Second Floor", spaces: 95 },
-      { name: "Third Floor", spaces: 135 },
     ],
   },
 ];

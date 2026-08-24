@@ -141,29 +141,52 @@ export default function TuitionAccommodationFee() {
   // Load student data from localStorage only - NO API CALL
   useEffect(() => {
     try {
+      let parsedStudent = null;
+
       // Get student from localStorage (saved during login)
       const savedStudent = localStorage.getItem("student");
       if (savedStudent) {
-        const parsed = JSON.parse(savedStudent);
-        setStudent(parsed);
-        console.log("📋 Loaded student from localStorage:", parsed.name);
-
-        // Get hostel fee from selection if available
-        if (parsed.hostelSelection) {
-          setHostelFee(parsed.hostelSelection.fee || FALLBACK_HOSTEL_FEE);
-        } else {
-          // Try to get from localStorage as fallback
-          const saved = localStorage.getItem("veritas_hostel_selection");
-          if (saved) {
-            const hostelData = JSON.parse(saved);
-            if (hostelData.fee) setHostelFee(hostelData.fee);
-          }
-        }
+        parsedStudent = JSON.parse(savedStudent);
+        setStudent(parsedStudent);
+        console.log("📋 Loaded student from localStorage:", parsedStudent.name);
       } else {
         console.log("⚠️ No student found in localStorage");
       }
+
+      // ✅ GET HOSTEL FEE FROM LOCALSTORAGE
+      const savedHostel = localStorage.getItem("veritas_hostel_selection");
+      if (savedHostel) {
+        const hostelData = JSON.parse(savedHostel);
+        console.log(
+          "🏨 Loaded hostel selection from localStorage:",
+          hostelData,
+        );
+        if (hostelData.fee) {
+          setHostelFee(hostelData.fee);
+          console.log("💰 Hostel fee set to:", hostelData.fee);
+          return; // Exit early since we found the fee
+        }
+      }
+
+      // If no hostel selection in localStorage, check if hostelSelection is in the student object
+      if (parsedStudent?.hostelSelection?.fee) {
+        setHostelFee(parsedStudent.hostelSelection.fee);
+        console.log(
+          "💰 Hostel fee from student object:",
+          parsedStudent.hostelSelection.fee,
+        );
+        return;
+      }
+
+      // If no fee found anywhere, use fallback
+      setHostelFee(FALLBACK_HOSTEL_FEE);
+      console.log(
+        "⚠️ No hostel fee found, using fallback:",
+        FALLBACK_HOSTEL_FEE,
+      );
     } catch (error) {
       console.error("Error loading student data:", error);
+      setHostelFee(FALLBACK_HOSTEL_FEE);
     } finally {
       setLoadingStudent(false);
     }
@@ -203,7 +226,8 @@ export default function TuitionAccommodationFee() {
   const paystackConfig = {
     reference: `veritas_${Date.now()}`,
     email: student?.email || "student@veritas.edu.ng",
-    amount: Math.round(planAmount * 100),
+    // amount: Math.round(planAmount * 100),
+    amount: Math.round(50 * 100),
     publicKey: PAYSTACK_PUBLIC_KEY,
     metadata: {
       custom_fields: [
@@ -472,6 +496,8 @@ export default function TuitionAccommodationFee() {
                       Select percentage of total amount to pay now
                     </p>
                   </div>
+
+                  {/* <ReadOnlyField label="Balance" value={formatNaira(balance)} /> */}
 
                   {/* <ReadOnlyField
                     label="Payment Status"
