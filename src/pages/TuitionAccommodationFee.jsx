@@ -130,8 +130,8 @@ export default function TuitionAccommodationFee() {
   const [isLoading, setIsLoading] = useState(false);
   const [noteVisible, setNoteVisible] = useState(true);
   const [payStatus, setPayStatus] = useState(null);
-  const [plan, setPlan] = useState(75);
-  const [pendingPlan, setPendingPlan] = useState(75);
+  const [plan, setPlan] = useState(100);
+  const [pendingPlan, setPendingPlan] = useState(100);
   const [hostelFee, setHostelFee] = useState(FALLBACK_HOSTEL_FEE);
   const [student, setStudent] = useState(null);
   const [loadingStudent, setLoadingStudent] = useState(true);
@@ -203,7 +203,7 @@ export default function TuitionAccommodationFee() {
   const paystackConfig = {
     reference: `veritas_${Date.now()}`,
     email: student?.email || "student@veritas.edu.ng",
-    amount: Math.round(50 * 100),
+    amount: Math.round(planAmount * 100),
     publicKey: PAYSTACK_PUBLIC_KEY,
     metadata: {
       custom_fields: [
@@ -473,9 +473,7 @@ export default function TuitionAccommodationFee() {
                     </p>
                   </div>
 
-                  <ReadOnlyField label="Balance" value={formatNaira(balance)} />
-
-                  <ReadOnlyField
+                  {/* <ReadOnlyField
                     label="Payment Status"
                     value={
                       payStatus === "success"
@@ -486,7 +484,7 @@ export default function TuitionAccommodationFee() {
                             ? "Failed ✗"
                             : "Pending"
                     }
-                  />
+                  /> */}
                 </div>
 
                 <div className="flex justify-end px-6 py-5 border-t border-slate-100">

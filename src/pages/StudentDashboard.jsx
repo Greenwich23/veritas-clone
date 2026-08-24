@@ -1,18 +1,8 @@
 /* eslint-disable no-unused-vars */
 // StudentDashboard.jsx
-import React, { useState, useEffect } from "react";
-import { Zap, Loader } from "lucide-react";
-import Sidebar from "../components/Sidebar";
-import Topbar from "../components/Topbar";
+import React, { useState } from "react";
+import { Zap, Loader, User, LogOut } from "lucide-react";
 import {
-  LayoutGrid,
-  Target,
-  CreditCard,
-  Home as HomeIcon,
-  HelpCircle,
-  LogOut,
-  Menu,
-  ChevronLeft,
   Printer,
   FileText,
   Banknote,
@@ -23,20 +13,87 @@ import {
   BookOpen,
   MessageSquare,
   BedDouble,
-  User,
-  ChevronRight,
+  HelpCircle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-// These can also be moved to separate files
-const statCards = [
-  { label: "Current Level", value: "300" },
-  { label: "Studentship", value: "Active" },
-  { label: "Session", value: "2025/2026" },
-  { label: "Department", value: "Computer and Information Technology" },
-];
+// Profile Card Component
+function ProfileCard({ student }) {
+  return (
+    <div className="rounded-lg bg-gradient-to-r from-slate-700 to-blue-800 text-white py-10 px-7 flex items-center gap-5 shadow-sm">
+      <div className="w-[70px] h-[70px] rounded-full overflow-hidden flex-shrink-0 bg-white/20 flex items-center justify-center">
+        <img src="https://i.ibb.co/WNDMjRX0/download.jpg" alt="" />
+      </div>
+      <div>
+        <h2 className="text-xl font-bold leading-tight text-[1.45rem]">
+          {student?.name || "Student Name"}
+        </h2>
+        <p className="text-sm text-blue-100 mt-1">
+          {student?.regNo || "VUG/CSC/XX/XXXX"}
+        </p>
+        <p className="text-sm text-blue-100 mt-[5px]">
+          {student?.department || "Computer Science"} &middot; 2025/2026
+        </p>
+        {/* <p className="text-sm text-blue-100 mt-[2px]">
+          Payment Status:{" "}
+          <span
+            className={`font-semibold ${
+              student?.paymentStatus === "success"
+                ? "text-green-300"
+                : student?.paymentStatus === "pending"
+                  ? "text-yellow-300"
+                  : "text-red-300"
+            }`}
+          >
+            {student?.paymentStatus === "success"
+              ? "Paid ✓"
+              : student?.paymentStatus === "pending"
+                ? "Pending"
+                : "Not Paid"}
+          </span>
+        </p> */}
+      </div>
+    </div>
+  );
+}
 
+// Stat Card Component
+function StatCard({ label, value }) {
+  return (
+    <div className="bg-white rounded-lg border border-slate-200 p-5">
+      <p className="text-[11px] tracking-wider text-slate-400 font-medium">
+        {label.toUpperCase()}
+      </p>
+      <p className="font-bold text-slate-800 text-[0.9rem] mt-1">{value}</p>
+    </div>
+  );
+}
+
+// Quick Link Card Component
+function QuickLinkCard({ icon: Icon, color, title, subtitle, page }) {
+  const navigate = useNavigate();
+  return (
+    <button
+      className="text-left border bg-white rounded-lg border-slate-300 p-3 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer"
+      onClick={() => page && navigate(`/${page}`)}
+    >
+      <div
+        className={`w-11 h-11 rounded-md ${color} flex items-center justify-center mb-4`}
+      >
+        <Icon size={20} className="text-white" />
+      </div>
+      <p className="font-semibold text-slate-800 text-[0.9rem] leading-snug">
+        {title}
+      </p>
+      <p className="text-sm text-slate-500 mt-1 leading-snug text-[0.75rem]">
+        {subtitle}
+      </p>
+    </button>
+  );
+}
+
+// Quick Links Data
 const quickLinks = [
   {
     icon: Printer,
@@ -117,98 +174,10 @@ const quickLinks = [
   },
 ];
 
-function ProfileCard({ student }) {
-  return (
-    <div className="rounded-lg bg-gradient-to-r from-slate-700 to-blue-800 text-white py-10 px-7 flex items-center gap-5 shadow-sm">
-      <div className="w-[70px] h-[70px] rounded-full overflow-hidden flex-shrink-0 bg-white/20 flex items-center justify-center">
-        {student?.name ? (
-          <img
-            className="w-full h-full object-cover rounded-full"
-            src="https://i.ibb.co/WNDMjRX0/download.jpg"
-            alt="Profile"
-          />
-        ) : (
-          <User size={35} className="text-white" />
-        )}
-      </div>
-
-      <div>
-        <h2 className="text-xl font-bold leading-tight text-[1.45rem]">
-          {student?.name || "Student Name"}
-        </h2>
-        <p className="text-sm text-blue-100 mt-1">
-          {student?.regNo || "VUG/CSC/XX/XXXX"}
-        </p>
-        <p className="text-sm text-blue-100 mt-[5px]">
-          {student?.department || "Computer Science"} &middot; 2025/2026
-        </p>
-        <p className="text-sm text-blue-100 mt-[2px]">
-          Payment Status:{" "}
-          <span
-            className={`font-semibold ${
-              student?.paymentStatus === "success"
-                ? "text-green-300"
-                : student?.paymentStatus === "pending"
-                  ? "text-yellow-300"
-                  : "text-red-300"
-            }`}
-          >
-            {student?.paymentStatus === "success"
-              ? "Paid ✓"
-              : student?.paymentStatus === "pending"
-                ? "Pending"
-                : "Not Paid"}
-          </span>
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function StatCard({ label, value }) {
-  return (
-    <div className="bg-white rounded-lg border border-slate-200 p-5">
-      <p className="text-[11px] tracking-wider text-slate-400 font-medium">
-        {label.toUpperCase()}
-      </p>
-      <p className="font-bold text-slate-800 text-[0.9rem] mt-1">{value}</p>
-    </div>
-  );
-}
-
-function QuickLinkCard({ icon: Icon, color, title, subtitle, page }) {
-  const navigate = useNavigate();
-  return (
-    <button
-      className="text-left border bg-white rounded-lg border-slate-300 p-3 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer"
-      onClick={() => page && navigate(`/${page}`)}
-    >
-      <div
-        className={`w-11 h-11 rounded-md ${color} flex items-center justify-center mb-4`}
-      >
-        <Icon size={20} className="text-white" />
-      </div>
-      <p className="font-semibold text-slate-800 text-[0.9rem] leading-snug">
-        {title}
-      </p>
-      <p className="text-sm text-slate-500 mt-1 leading-snug text-[0.75rem]">
-        {subtitle}
-      </p>
-    </button>
-  );
-}
-
 export default function StudentDashboard() {
   const navigate = useNavigate();
-  const { user, loading, logout, isAuthenticated } = useAuth();
+  const { user, loading, logout } = useAuth();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      navigate("/login");
-    }
-  }, [loading, isAuthenticated, navigate]);
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
@@ -218,14 +187,17 @@ export default function StudentDashboard() {
   const getStudentStats = () => {
     return [
       { label: "Current Level", value: user?.level || "300" },
-      {
-        label: "Studentship",
-        value: "Active",
-      },
+      { label: "Studentship", value: "Active" },
       { label: "Session", value: "2025/2026" },
       { label: "Department", value: user?.department || "Computer Science" },
     ];
   };
+
+  // If user is null (not logged in), redirect to login
+  if (!user) {
+    navigate("/login");
+    return null;
+  }
 
   if (loading) {
     return (
@@ -238,19 +210,29 @@ export default function StudentDashboard() {
     );
   }
 
-  // If not authenticated, don't render (will redirect via useEffect)
-  if (!isAuthenticated) {
-    return null;
-  }
-
   const studentStats = getStudentStats();
 
   return (
     <div className="flex h-screen w-full bg-slate-100 font-sans">
-      {/* Sidebar - you'll need to pass user data to it */}
-
       <div className="flex-1 flex flex-col min-w-0">
-        <main className="flex-1">
+        <main className="flex-1 overflow-y-auto">
+          {/* Top Bar */}
+          <div className="flex items-center justify-between px-4 md:px-4 pt-3 pb-4">
+            <h1 className="text-[25px] font-normal text-slate-800 font-extrabold">
+              Student Dashboard
+            </h1>
+            <div className="flex items-center gap-3">
+              <span className="text-slate-400 text-sm">Dashboard</span>
+              {/* <button
+                onClick={logout}
+                className="flex items-center gap-2 text-sm text-red-600 hover:text-red-700 font-medium"
+              >
+                <LogOut size={16} />
+                Logout
+              </button> */}
+            </div>
+          </div>
+
           {/* Profile Card */}
           <div className="px-4 md:px-2">
             <ProfileCard student={user} />
@@ -277,6 +259,11 @@ export default function StudentDashboard() {
               <QuickLinkCard key={q.title} {...q} />
             ))}
           </div>
+
+          {/* Footer */}
+          <footer className="text-center text-sm text-slate-500 font-medium py-4 border-t border-slate-200">
+            Copyright &copy; Veritas University Abuja 2026.
+          </footer>
         </main>
       </div>
     </div>

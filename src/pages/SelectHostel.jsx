@@ -13,11 +13,9 @@ import {
   ShieldCheck,
   BookOpen,
   Loader,
-  RefreshCw,
 } from "lucide-react";
 import { HOSTELS, formatNaira } from "./hostelData";
 import { useAuth } from "../context/AuthContext";
-import axios from "axios";
 
 function Breadcrumb() {
   return (
@@ -218,77 +216,38 @@ function HostelCard({ hostel, selected, onSelectCategory, isDisabled }) {
 
 export default function SelectHostel() {
   const navigate = useNavigate();
-  const { user, token, loading: authLoading, updateUser } = useAuth();
+  const { user, loading: authLoading, updateUser } = useAuth();
   const [selected, setSelected] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
 
-  const API_BASE_URL =
-    import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
-
-  // Create axios instance with auth header
-  const axiosInstance = axios.create({
-    baseURL: API_BASE_URL,
-    headers: {
-      Authorization: `Bearer ${token || localStorage.getItem("token")}`,
-    },
-  });
-
-  // Refresh user data from server
-  const refreshUserData = async () => {
-    try {
-      setRefreshing(true);
-      const authToken = token || localStorage.getItem("token");
-      if (!authToken) return;
-
-      const response = await axios.get(`${API_BASE_URL}/api/auth/profile`, {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
-
-      if (response.data && updateUser) {
-        updateUser(response.data);
-        console.log("🔄 User data refreshed:", response.data);
-
-        // Clear any cached selection if none exists
-        if (!response.data.hostelSelection) {
-          localStorage.removeItem("veritas_hostel_selection");
-          setSelected(null);
+  // Load from localStorage on mount
+  useEffect(() => {
+    const savedSelection = localStorage.getItem("veritas_hostel_selection");
+    if (savedSelection) {
+      try {
+        const parsed = JSON.parse(savedSelection);
+        setSelected({
+          hostelId: parsed.hostelId,
+          category: parsed.category,
+        });
+        // Also update user context
+        if (user) {
+          updateUser({ hostelSelection: parsed });
         }
+      } catch (err) {
+        console.error("Error parsing saved selection:", err);
       }
-    } catch (err) {
-      console.error("Error refreshing user data:", err);
-    } finally {
-      setRefreshing(false);
-    }
-  };
-
-  // Check if user already has a hostel selection
-  useEffect(() => {
-    // First, refresh user data from server to get the latest state
-    refreshUserData();
-  }, []);
-
-  // Update selected state when user changes
-  useEffect(() => {
-    if (user?.hostelSelection) {
-      setSelected({
-        hostelId: user.hostelSelection.hostelId,
-        category: user.hostelSelection.category,
-      });
-    } else {
-      setSelected(null);
     }
     setLoading(false);
-  }, [user]);
+  }, []);
 
   const handleSelectCategory = async (hostel, category) => {
-    // Don't allow if already selected
-    if (user?.hostelSelection) {
+    // Check if already selected in localStorage
+    const savedSelection = localStorage.getItem("veritas_hostel_selection");
+    if (savedSelection) {
       setError(
         "You have already selected a hostel. You cannot change your selection.",
       );
@@ -304,87 +263,60 @@ export default function SelectHostel() {
       hostelName: hostel.name,
       category: category.name,
       fee: hostel.fee,
+      selectedAt: new Date().toISOString(),
     };
 
-    console.log("📤 Sending selection data:", selectionData);
+    console.log("📤 Saving selection to localStorage:", selectionData);
 
     try {
-      const response = await axiosInstance.post(
-        "/api/bed-space/select",
-        selectionData,
+      // Save to localStorage
+      localStorage.setItem(
+        "veritas_hostel_selection",
+        JSON.stringify(selectionData),
       );
 
-      console.log("✅ Response received:", response.data);
-
-      if (response.data.selection) {
-        setSuccess("Hostel selected successfully!");
-        setSelected({ hostelId: hostel.id, category: category.name });
-
-        if (updateUser) {
-          updateUser({ hostelSelection: response.data.selection });
-        }
-
-        localStorage.setItem(
-          "veritas_hostel_selection",
-          JSON.stringify({
-            hostelId: hostel.id,
-            hostelName: hostel.name,
-            category: category.name,
-            fee: hostel.fee,
-          }),
-        );
-
-        setTimeout(() => {
-          navigate("/payments/view-avaliable-hostels");
-        }, 1500);
+      // Update user context
+      if (updateUser) {
+        updateUser({ hostelSelection: selectionData });
       }
+
+      setSuccess("Hostel selected successfully!");
+      setSelected({ hostelId: hostel.id, category: category.name });
+
+      // Try to save to backend (optional - don't wait for it)
+      try {
+        const API_BASE_URL =
+          import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+        await axios.post(
+          `${API_BASE_URL}/api/bed-space/select`,
+          selectionData,
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+        );
+        console.log("✅ Backend updated successfully");
+      } catch (backendErr) {
+        console.log(
+          "⚠️ Backend save failed, but localStorage has the data:",
+          backendErr.message,
+        );
+      }
+
+      // Navigate to bed space selection after a delay
+      setTimeout(() => {
+        navigate("/payments/view-avaliable-hostels");
+      }, 1500);
     } catch (err) {
       console.error("❌ Error selecting hostel:", err);
-
-      // Check if selection was already saved (409 conflict)
-      if (err.response?.status === 409) {
-        setSuccess(
-          "Hostel already selected! Taking you to bed space selection...",
-        );
-        setSelected({ hostelId: hostel.id, category: category.name });
-
-        localStorage.setItem(
-          "veritas_hostel_selection",
-          JSON.stringify({
-            hostelId: hostel.id,
-            hostelName: hostel.name,
-            category: category.name,
-            fee: hostel.fee,
-          }),
-        );
-
-        setTimeout(() => {
-          navigate("/payments/view-avaliable-hostels");
-        }, 1500);
-        return;
-      }
-
-      // Check if we have a saved selection in localStorage (it worked despite error)
-      const savedSelection = localStorage.getItem("veritas_hostel_selection");
-      if (savedSelection) {
-        setSuccess("Hostel selected! Taking you to bed space selection...");
-        setTimeout(() => {
-          navigate("/payments/view-avaliable-hostels");
-        }, 1500);
-        return;
-      }
-
-      // Show error but DON'T redirect to login
-      setError(
-        err.response?.data?.message ||
-          "Failed to select hostel. Please try again.",
-      );
+      setError("Failed to select hostel. Please try again.");
     } finally {
       setSaving(false);
     }
   };
 
-  if (authLoading || loading || refreshing) {
+  if (authLoading || loading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-slate-100">
         <div className="text-center">
@@ -392,15 +324,17 @@ export default function SelectHostel() {
             size={40}
             className="animate-spin text-blue-600 mx-auto mb-4"
           />
-          <p className="text-slate-600">
-            {refreshing ? "Refreshing your data..." : "Loading your details..."}
-          </p>
+          <p className="text-slate-600">Loading your details...</p>
         </div>
       </div>
     );
   }
 
-  const hasExistingSelection = !!user?.hostelSelection;
+  const hasExistingSelection = !!localStorage.getItem(
+    "veritas_hostel_selection",
+  );
+  const savedSelection = localStorage.getItem("veritas_hostel_selection");
+  const parsedSelection = savedSelection ? JSON.parse(savedSelection) : null;
 
   return (
     <div className="flex h-screen w-full bg-slate-100 font-sans">
@@ -424,23 +358,6 @@ export default function SelectHostel() {
             <InfoBox />
           </div>
 
-          {/* Debug: Show what's in the user object */}
-          <div className="px-3 md:px-4 mt-4">
-            <div className="bg-gray-50 border border-gray-200 rounded-md p-3 text-xs text-gray-600">
-              <strong>Debug:</strong> hostelSelection ={" "}
-              {user?.hostelSelection
-                ? JSON.stringify(user.hostelSelection)
-                : "null"}
-              <button
-                onClick={refreshUserData}
-                className="ml-3 text-blue-600 hover:text-blue-800 flex items-center gap-1"
-              >
-                <RefreshCw size={14} />
-                Refresh
-              </button>
-            </div>
-          </div>
-
           {/* Status Messages */}
           {error && (
             <div className="px-3 md:px-4 mt-4">
@@ -453,18 +370,17 @@ export default function SelectHostel() {
           {success && (
             <div className="px-3 md:px-4 mt-4">
               <div className="bg-green-50 border border-green-200 text-green-700 rounded-md px-5 py-4 text-sm font-medium">
-                ✅ {success} Redirecting to bed space selection...
+                ✅ {success}
               </div>
             </div>
           )}
 
-          {hasExistingSelection && (
+          {hasExistingSelection && parsedSelection && (
             <div className="px-3 md:px-4 mt-4">
               <div className="bg-blue-50 border border-blue-200 text-blue-700 rounded-md px-5 py-4 text-sm font-medium flex items-center gap-2">
                 <ShieldCheck size={18} />
-                You have already selected a hostel:{" "}
-                {user.hostelSelection?.hostelName}
-                (Category: {user.hostelSelection?.category})
+                You have already selected a hostel: {parsedSelection.hostelName}
+                (Category: {parsedSelection.category})
               </div>
             </div>
           )}

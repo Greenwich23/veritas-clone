@@ -1,12 +1,13 @@
-// AuthContext.jsx - Simplified version without auto-load
-import React, { createContext, useState, useContext } from "react";
+/* eslint-disable no-unused-vars */
+/* eslint-disable react-refresh/only-export-components */
+import React, { createContext, useState, useContext, useEffect } from "react";
 import axios from "axios";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const API_BASE_URL =
@@ -16,17 +17,24 @@ export function AuthProvider({ children }) {
     baseURL: API_BASE_URL,
   });
 
-  // Add token to requests
-  axiosInstance.interceptors.request.use(
-    (config) => {
-      const token = localStorage.getItem("token");
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+  // Load user from localStorage on mount
+  useEffect(() => {
+    const loadUserFromStorage = () => {
+      const savedUser = localStorage.getItem("user");
+      if (savedUser) {
+        try {
+          const parsedUser = JSON.parse(savedUser);
+          setUser(parsedUser);
+          console.log("📋 Loaded user from localStorage:", parsedUser.name);
+        } catch (err) {
+          console.error("Error parsing saved user:", err);
+        }
       }
-      return config;
-    },
-    (error) => Promise.reject(error),
-  );
+      setLoading(false);
+    };
+
+    loadUserFromStorage();
+  }, []);
 
   // Login function
   const login = async (regNo, password) => {
@@ -39,10 +47,10 @@ export function AuthProvider({ children }) {
         password,
       });
 
-      const { token, student } = response.data;
+      const { student } = response.data;
 
-      // Save token
-      localStorage.setItem("token", token);
+      // Save user to localStorage
+      localStorage.setItem("user", JSON.stringify(student));
       setUser(student);
 
       return { success: true, user: student };
@@ -62,9 +70,9 @@ export function AuthProvider({ children }) {
       setError(null);
 
       const response = await axiosInstance.post("/api/auth/register", userData);
-      const { token, student } = response.data;
+      const { student } = response.data;
 
-      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(student));
       setUser(student);
 
       return { success: true, user: student };
@@ -77,9 +85,36 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // Update user data
+  const updateUser = (newData) => {
+    setUser((prev) => {
+      const updated = { ...prev, ...newData };
+      localStorage.setItem("user", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  // Refresh user from localStorage
+  const refreshUser = () => {
+    const savedUser = localStorage.getItem("user");
+    if (savedUser) {
+      try {
+        const parsedUser = JSON.parse(savedUser);
+        setUser(parsedUser);
+        return parsedUser;
+      } catch (err) {
+        console.error("Error parsing saved user:", err);
+        return null;
+      }
+    }
+    return null;
+  };
+
   // Logout
   const logout = () => {
-    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("veritas_hostel_selection");
+    localStorage.removeItem("veritas_selected_bed_space");
     setUser(null);
     setError(null);
   };
@@ -91,7 +126,9 @@ export function AuthProvider({ children }) {
     login,
     register,
     logout,
-    isAuthenticated: !!user && !!localStorage.getItem("token"),
+    updateUser,
+    refreshUser,
+    isAuthenticated: !!user,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
