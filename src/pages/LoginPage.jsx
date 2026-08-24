@@ -1,36 +1,35 @@
 import { useState } from "react";
-import { Mail, LockKeyhole } from "lucide-react";
+import { Mail, LockKeyhole, Loader } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext"; // Adjust import path
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const { login, loading, error: authError } = useAuth();
 
-  const [email, setEmail] = useState("");
+  const [regNo, setRegNo] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  // Pre-determined login credentials
-  const CORRECT_EMAIL = "VUG/CSC/23/9682";
-  const CORRECT_PASSWORD = "peter1234";
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Clear previous error
     setError("");
 
-    // Check credentials
-    if (
-      email.trim().toLowerCase() === CORRECT_EMAIL.toLowerCase() &&
-      password === CORRECT_PASSWORD
-    ) {
-      // Login successful
-      navigate("/dashboard");
+    // Trim and format registration number (uppercase)
+    const formattedRegNo = regNo.trim().toUpperCase();
+
+    if (!formattedRegNo || !password) {
+      setError("Please enter both registration number and password.");
       return;
     }
 
-    // Login failed
-    setError("Invalid registration number or password.");
+    const result = await login(formattedRegNo, password);
+
+    if (result.success) {
+      navigate("/dashboard");
+    } else {
+      setError(result.error || "Invalid registration number or password.");
+    }
   };
 
   return (
@@ -52,15 +51,15 @@ export default function LoginPage() {
           <div className="flex h-[46px]">
             <input
               type="text"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={regNo}
+              onChange={(e) => setRegNo(e.target.value)}
               placeholder="Registration Number"
               aria-label="Registration number"
-              className="min-w-0 flex-1 rounded-l-[5px] border border-[#ced4da] bg-[#e8f0fe] px-[14px] text-[16px] text-[#111] outline-none transition placeholder:text-[#6c757d] focus:border-[#80bdff] focus:ring-1 focus:ring-[#80bdff]"
+              disabled={loading}
+              className="min-w-0 flex-1 rounded-l-[5px] border border-[#ced4da] bg-[#e8f0fe] px-[14px] text-[16px] text-[#111] outline-none transition placeholder:text-[#6c757d] focus:border-[#80bdff] focus:ring-1 focus:ring-[#80bdff] disabled:opacity-60"
             />
-
             <span className="flex w-[50px] items-center justify-center rounded-r-[5px] border border-l-0 border-[#ced4da] bg-[#e9ecef] text-[19px] text-[#45515c]">
-              <Mail />
+              <Mail size={19} />
             </span>
           </div>
 
@@ -72,17 +71,19 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
               aria-label="Password"
-              className="min-w-0 flex-1 rounded-l-[5px] border border-[#ced4da] bg-[#e8f0fe] px-[14px] text-[16px] text-[#111] outline-none transition placeholder:text-[#6c757d] focus:border-[#80bdff] focus:ring-1 focus:ring-[#80bdff]"
+              disabled={loading}
+              className="min-w-0 flex-1 rounded-l-[5px] border border-[#ced4da] bg-[#e8f0fe] px-[14px] text-[16px] text-[#111] outline-none transition placeholder:text-[#6c757d] focus:border-[#80bdff] focus:ring-1 focus:ring-[#80bdff] disabled:opacity-60"
             />
-
             <span className="flex w-[50px] items-center justify-center rounded-r-[5px] border border-l-0 border-[#ced4da] bg-[#e9ecef] text-[19px] text-[#45515c]">
-              <LockKeyhole />
+              <LockKeyhole size={19} />
             </span>
           </div>
 
-          {/* Error */}
-          {error && (
-            <p className="mt-[12px] text-[15px] text-red-600">{error}</p>
+          {/* Error message */}
+          {(error || authError) && (
+            <p className="mt-[12px] text-[15px] text-red-600">
+              {error || authError}
+            </p>
           )}
 
           {/* Bottom row */}
@@ -97,9 +98,17 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              className="h-[46px] w-[116px] rounded-[5px] bg-[#007bff] text-[18px] text-white shadow-none transition hover:bg-[#0069d9] focus:outline-none focus:ring-2 focus:ring-[#80bdff] focus:ring-offset-1 active:bg-[#0062cc]"
+              disabled={loading}
+              className="flex h-[46px] w-[116px] items-center justify-center gap-2 rounded-[5px] bg-[#007bff] text-[18px] text-white shadow-none transition hover:bg-[#0069d9] focus:outline-none focus:ring-2 focus:ring-[#80bdff] focus:ring-offset-1 active:bg-[#0062cc] disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              Sign In
+              {loading ? (
+                <>
+                  <Loader size={20} className="animate-spin" />
+                  <span>Signing...</span>
+                </>
+              ) : (
+                "Sign In"
+              )}
             </button>
           </div>
         </form>

@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 // StudentDashboard.jsx
-import React, { useState } from "react";
-import { Zap } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Zap, Loader } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import {
@@ -27,10 +27,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-// If you extracted other components, import them too
-// import ProfileCard from "./ProfileCard";
-// import StatCard from "./StatCard";
-// import QuickLinkCard from "./QuickLinkCard";
+import { useAuth } from "../context/AuthContext";
 
 // These can also be moved to separate files
 const statCards = [
@@ -109,7 +106,7 @@ const quickLinks = [
     color: "bg-sky-700",
     title: "Select Bed Space",
     subtitle: "Select bed space",
-    page: "",
+    page: "payments/view-avaliable-hostels",
   },
   {
     icon: HelpCircle,
@@ -120,24 +117,48 @@ const quickLinks = [
   },
 ];
 
-function ProfileCard() {
+function ProfileCard({ student }) {
   return (
     <div className="rounded-lg bg-gradient-to-r from-slate-700 to-blue-800 text-white py-10 px-7 flex items-center gap-5 shadow-sm">
-      <div className="w-[70px] h-[70px] rounded-full overflow-hidden flex-shrink-0">
-        <img
-          className="w-full h-full object-cover rounded-full"
-          src="https://i.ibb.co/WNDMjRX0/download.jpg"
-          alt="Profile"
-        />
+      <div className="w-[70px] h-[70px] rounded-full overflow-hidden flex-shrink-0 bg-white/20 flex items-center justify-center">
+        {student?.name ? (
+          <img
+            className="w-full h-full object-cover rounded-full"
+            src="https://i.ibb.co/WNDMjRX0/download.jpg"
+            alt="Profile"
+          />
+        ) : (
+          <User size={35} className="text-white" />
+        )}
       </div>
 
       <div>
         <h2 className="text-xl font-bold leading-tight text-[1.45rem]">
-          Panan Peter Ezekiel
+          {student?.name || "Student Name"}
         </h2>
-        <p className="text-sm text-blue-100 mt-1">VUG/CSC/23/9680</p>
+        <p className="text-sm text-blue-100 mt-1">
+          {student?.regNo || "VUG/CSC/XX/XXXX"}
+        </p>
         <p className="text-sm text-blue-100 mt-[5px]">
-          Computer Science &middot; 2025/2026
+          {student?.department || "Computer Science"} &middot; 2025/2026
+        </p>
+        <p className="text-sm text-blue-100 mt-[2px]">
+          Payment Status:{" "}
+          <span
+            className={`font-semibold ${
+              student?.paymentStatus === "success"
+                ? "text-green-300"
+                : student?.paymentStatus === "pending"
+                  ? "text-yellow-300"
+                  : "text-red-300"
+            }`}
+          >
+            {student?.paymentStatus === "success"
+              ? "Paid ✓"
+              : student?.paymentStatus === "pending"
+                ? "Pending"
+                : "Not Paid"}
+          </span>
         </p>
       </div>
     </div>
@@ -159,8 +180,8 @@ function QuickLinkCard({ icon: Icon, color, title, subtitle, page }) {
   const navigate = useNavigate();
   return (
     <button
-      className="text-left  border bg-white rounded-lg border-slate-300 p-3 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer"
-      onClick={() => navigate(`/${page}`)}
+      className="text-left border bg-white rounded-lg border-slate-300 p-3 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer"
+      onClick={() => page && navigate(`/${page}`)}
     >
       <div
         className={`w-11 h-11 rounded-md ${color} flex items-center justify-center mb-4`}
@@ -178,34 +199,71 @@ function QuickLinkCard({ icon: Icon, color, title, subtitle, page }) {
 }
 
 export default function StudentDashboard() {
+  const navigate = useNavigate();
+  const { user, loading, logout, isAuthenticated } = useAuth();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      navigate("/login");
+    }
+  }, [loading, isAuthenticated, navigate]);
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
   };
 
+  // Get dynamic stats based on user data
+  const getStudentStats = () => {
+    return [
+      { label: "Current Level", value: user?.level || "300" },
+      {
+        label: "Studentship",
+        value: "Active",
+      },
+      { label: "Session", value: "2025/2026" },
+      { label: "Department", value: user?.department || "Computer Science" },
+    ];
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-slate-100">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-600">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If not authenticated, don't render (will redirect via useEffect)
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  const studentStats = getStudentStats();
+
   return (
     <div className="flex h-screen w-full bg-slate-100 font-sans">
+      {/* Sidebar - you'll need to pass user data to it */}
+
       <div className="flex-1 flex flex-col min-w-0">
         <main className="flex-1">
-          {/* Rest of your JSX remains the same */}
-          <div className="flex items-center justify-between px-4 md:px-4 pt-3 pb-4">
-            <h1 className="text-[25px] font-normal text-slate-800 font-extrabold">
-              Student Dashboard
-            </h1>
-            <span className="text-slate-400 text-sm">Dashboard</span>
-          </div>
-
+          {/* Profile Card */}
           <div className="px-4 md:px-2">
-            <ProfileCard />
+            <ProfileCard student={user} />
           </div>
 
+          {/* Stats Cards */}
           <div className="px-4 md:px-2 mt-5 grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {statCards.map((s) => (
+            {studentStats.map((s) => (
               <StatCard key={s.label} {...s} />
             ))}
           </div>
 
+          {/* Quick Links */}
           <div className="px-4 md:px-4 mt-7 flex items-center gap-2">
             <Zap size={18} className="text-blue-600 fill-blue-600" />
             <h3 className="font-semibold text-slate-800 text-[17px]">

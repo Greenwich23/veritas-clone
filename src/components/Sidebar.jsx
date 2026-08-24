@@ -37,7 +37,7 @@ const navItems = [
   {
     label: "Accomodation",
     icon: HomeIcon,
-    page: "/accomodation",
+    page: "/payments/view-avaliable-hostels",
   },
   {
     label: "Inquiries",
