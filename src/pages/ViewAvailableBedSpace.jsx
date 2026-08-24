@@ -26,31 +26,13 @@ const FALLBACK_SELECTION = {
   category: "Third Floor",
   categorySpaces: 95,
   fee: 395000,
-  // Optional — only used once a bed space is confirmed. Fall back to
-  // sensible demo values if your hostel data doesn't carry these yet.
   gender: "Male",
   capacity: 4,
 };
 
-// ============================================================
-// Shared with TuitionAccommodationFee.jsx — used only as a fast local
-// cache. The real answer to "has this student paid?" is fetched from
-// the backend below, since localStorage can be edited by the student.
-// ============================================================
 const PAYMENT_STATUS_KEY = "veritas_payment_status";
 const SELECTED_BED_KEY = "veritas_selected_bed_space";
-
-// TODO: point this at whatever route actually renders
-// TuitionAccommodationFee in your router config.
 const PAYMENT_ROUTE = "/payments/payment-plan";
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
-
-// TODO: adjust to however your app actually stores the auth token.
-function getAuthHeaders() {
-  const token = localStorage.getItem("token");
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
 
 function Breadcrumb() {
   return (
@@ -268,9 +250,6 @@ function BunkCard({
   );
 }
 
-// Generates room/bunk cards whose count matches availableSpaces exactly,
-// with room numbers increasing (not strictly consecutive) and occasional
-// repeated room numbers when a room has more than one free bunk.
 function generateBunks(availableSpaces) {
   const bunks = [];
   let roomNumber = 1 + Math.floor(Math.random() * 3);
@@ -295,6 +274,7 @@ function generateBunks(availableSpaces) {
 export default function ViewAvailableBedSpace() {
   const navigate = useNavigate();
 
+  // Load everything from localStorage only
   const [selection] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -305,8 +285,6 @@ export default function ViewAvailableBedSpace() {
     }
   });
 
-  // Seeded from localStorage for an instant first paint, then overwritten
-  // by the backend once loadStatus() below resolves.
   const [paymentConfirmed, setPaymentConfirmed] = useState(
     () => localStorage.getItem(PAYMENT_STATUS_KEY) === "success",
   );
@@ -321,15 +299,11 @@ export default function ViewAvailableBedSpace() {
     }
   });
 
-  const [checkingStatus, setCheckingStatus] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [noticeVisible, setNoticeVisible] = useState(true);
+  const [checkingStatus, setCheckingStatus] = useState(false);
 
-  // Available spaces mirrors exactly what was shown on the Select Hostel
-  // page for this category, so the number stays consistent across pages.
-  // "alreadyPaid" is just flavor text for the info box and doesn't affect
-  // the available count or the number of bunk cards rendered.
   const {
     availableSpaces,
     alreadyPaid,
@@ -344,136 +318,71 @@ export default function ViewAvailableBedSpace() {
     };
   }, [selection.hostelId, selection.category]);
 
-  // Kept in state (rather than just the memo above) so a "bunk just taken"
-  // conflict from the backend can remove that one card without having to
-  // regenerate the whole list.
   const [bunks, setBunks] = useState(generatedBunks);
 
   useEffect(() => {
     setBunks(generatedBunks);
   }, [generatedBunks]);
 
-  // On mount: ask the backend what's actually true — has this student
-  // paid, and have they already booked a bunk — rather than trusting
-  // whatever's cached in localStorage.
+  // Check payment status from localStorage only
   useEffect(() => {
-    let cancelled = false;
-
-    async function loadStatus() {
-      setCheckingStatus(true);
-
-      try {
-        const [selectionRes, statusRes] = await Promise.all([
-          fetch(`${API_BASE}/api/bed-space/me`, {
-            headers: { ...getAuthHeaders() },
-          }),
-          fetch(`${API_BASE}/api/paystack/payment-status`, {
-            headers: { ...getAuthHeaders() },
-          }),
-        ]);
-
-        const selectionData = await selectionRes.json();
-        const statusData = await statusRes.json();
-
-        if (cancelled) return;
-
-        if (selectionData?.selection) {
-          setSelectedBed(selectionData.selection);
-          localStorage.setItem(
-            SELECTED_BED_KEY,
-            JSON.stringify(selectionData.selection),
-          );
-        }
-
-        if (typeof statusData?.verified === "boolean") {
-          setPaymentConfirmed(statusData.verified);
-          localStorage.setItem(
-            PAYMENT_STATUS_KEY,
-            statusData.verified ? "success" : "pending",
-          );
-        }
-      } catch (err) {
-        // Backend unreachable — fall back to whatever localStorage had
-        // so the page still works during local development.
-        console.error(
-          "Could not confirm payment/bed status with backend:",
-          err,
-        );
-      } finally {
-        if (!cancelled) setCheckingStatus(false);
-      }
-    }
-
-    loadStatus();
-
-    return () => {
-      cancelled = true;
-    };
+    const paid = localStorage.getItem(PAYMENT_STATUS_KEY) === "success";
+    setPaymentConfirmed(paid);
   }, []);
 
-  const handleSelectBed = async (bunk) => {
+  const handleSelectBed = (bunk) => {
     setErrorMessage(null);
     setIsSubmitting(true);
 
+    // Check if already selected
+    const savedBed = localStorage.getItem(SELECTED_BED_KEY);
+    if (savedBed) {
+      setErrorMessage("You have already selected a bed space.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Check if payment was made
+    if (!paymentConfirmed) {
+      setErrorMessage("Payment must be verified before selecting a bed space.");
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
-      const res = await fetch(`${API_BASE}/api/bed-space/select`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeaders(),
-        },
-        body: JSON.stringify({
-          hostelId: selection.hostelId,
-          hostelName: selection.hostelName,
-          category: selection.category,
+      // Save selected bed to localStorage
+      const bedData = {
+        hostelId: selection.hostelId,
+        hostelName: selection.hostelName,
+        category: selection.category,
+        room: bunk.room,
+        bunk: bunk.bunk,
+        position: bunk.position,
+        fee: selection.fee,
+        selectedAt: new Date().toISOString(),
+      };
+
+      localStorage.setItem(SELECTED_BED_KEY, JSON.stringify(bedData));
+      setSelectedBed(bedData);
+
+      // Also update the hostel selection with room details
+      const hostelSelection = localStorage.getItem(STORAGE_KEY);
+      if (hostelSelection) {
+        const parsed = JSON.parse(hostelSelection);
+        const updatedSelection = {
+          ...parsed,
           room: bunk.room,
           bunk: bunk.bunk,
           position: bunk.position,
-          fee: selection.fee,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (res.status === 201 && data.selection) {
-        setSelectedBed(data.selection);
-        localStorage.setItem(SELECTED_BED_KEY, JSON.stringify(data.selection));
-        return;
+          selectedAt: new Date().toISOString(),
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedSelection));
       }
 
-      if (res.status === 409 && data.selection) {
-        // Student already had a selection (e.g. opened this page in two
-        // tabs and booked in the other one) — just adopt it.
-        setSelectedBed(data.selection);
-        localStorage.setItem(SELECTED_BED_KEY, JSON.stringify(data.selection));
-        return;
-      }
-
-      if (res.status === 409 && data.conflict) {
-        // Someone else just took this exact room+bunk — drop it from the
-        // list so the student picks a different card.
-        setBunks((prev) =>
-          prev.filter((b) => !(b.room === bunk.room && b.bunk === bunk.bunk)),
-        );
-        setErrorMessage(data.message || "That bunk was just taken.");
-        return;
-      }
-
-      if (res.status === 403) {
-        setPaymentConfirmed(false);
-        setErrorMessage(
-          data.message ||
-            "Payment must be verified before selecting a bed space.",
-        );
-        return;
-      }
-
-      setErrorMessage(
-        data.message || "Could not save your bed space selection.",
-      );
+      console.log("✅ Bed space saved to localStorage:", bedData);
     } catch (err) {
-      console.error("selectBedSpace request failed:", err);
-      setErrorMessage("Could not reach the server. Please try again.");
+      console.error("Error saving bed space:", err);
+      setErrorMessage("Could not save your bed space selection.");
     } finally {
       setIsSubmitting(false);
     }
@@ -502,7 +411,7 @@ export default function ViewAvailableBedSpace() {
             </div>
           )}
 
-          {!checkingStatus && !paymentConfirmed && !isConfirmed && (
+          {!paymentConfirmed && !isConfirmed && (
             <div className="px-4 md:px-8 mt-5">
               <PaymentRequiredNotice
                 onGoToPayment={() => navigate(PAYMENT_ROUTE)}
