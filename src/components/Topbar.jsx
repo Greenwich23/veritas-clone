@@ -2,20 +2,26 @@
 // Topbar.jsx
 import React from "react";
 import { Menu } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 
-function Topbar({ toggleSidebar, isCollapsed }) {
+function Topbar({ toggleSidebar, isCollapsed, onMobileMenuClick }) {
+  const navigate = useNavigate();
   return (
     <header className="h-16 flex items-center justify-between px-4 bg-green-600 text-white shrink-0 w-full">
       <div className="flex items-center gap-5">
+        {/* Hamburger menu - works on both desktop and mobile */}
         <button
           className="p-1 hover:bg-white/10 rounded transition-colors"
-          onClick={toggleSidebar}
+          onClick={onMobileMenuClick || toggleSidebar}
         >
           <Menu size={22} />
         </button>
         <NavLink to="/">
-          <span className="font-medium text-[15px] hover:text-white/80 transition-colors">
+          <span
+            className="font-medium text-[15px] hover:text-white/80 transition-colors"
+            onClick={() => navigate("/dashboard")}
+          >
             Home
           </span>
         </NavLink>

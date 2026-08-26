@@ -128,7 +128,7 @@ const quickLinks = [
     color: "bg-sky-700",
     title: "Payment History",
     subtitle: "Receipts & past payments",
-    page: "",
+    page: "/payments/payment-history",
   },
   {
     icon: BarChart3,
