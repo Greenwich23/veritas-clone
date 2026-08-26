@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { HOSTELS, formatNaira } from "./hostelData";
 import { useAuth } from "../context/AuthContext";
+import axios from "axios";
 
 function Breadcrumb() {
   return (
@@ -129,6 +130,7 @@ function InfoBox() {
 
 function HostelCard({ hostel, selected, onSelectCategory, isDisabled }) {
   const isMultiOption = hostel.categories.length > 1;
+  const hasSelection = localStorage.getItem("veritas_hostel_selection");
 
   return (
     <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
@@ -223,6 +225,9 @@ export default function SelectHostel() {
   const [success, setSuccess] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const API_BASE_URL =
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+
   // Load from localStorage on mount
   useEffect(() => {
     const savedSelection = localStorage.getItem("veritas_hostel_selection");
@@ -247,10 +252,10 @@ export default function SelectHostel() {
   const handleSelectCategory = async (hostel, category) => {
     // Check if already selected in localStorage
     const savedSelection = localStorage.getItem("veritas_hostel_selection");
+
+    // If already selected, just navigate to bed space page
     if (savedSelection) {
-      setError(
-        "You have already selected a hostel. You cannot change your selection.",
-      );
+      navigate("/payments/view-avaliable-hostels");
       return;
     }
 
@@ -285,8 +290,6 @@ export default function SelectHostel() {
 
       // Try to save to backend (optional - don't wait for it)
       try {
-        const API_BASE_URL =
-          import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
         await axios.post(
           `${API_BASE_URL}/api/bed-space/select`,
           selectionData,
@@ -381,6 +384,9 @@ export default function SelectHostel() {
                 <ShieldCheck size={18} />
                 You have already selected a hostel: {parsedSelection.hostelName}
                 (Category: {parsedSelection.category})
+                <span className="text-xs ml-2 text-blue-500">
+                  (Click any category to view available bed spaces)
+                </span>
               </div>
             </div>
           )}
@@ -393,7 +399,9 @@ export default function SelectHostel() {
               </h3>
             </div>
             <span className="text-sm text-slate-400">
-              Select a floor or wing category to continue
+              {hasExistingSelection
+                ? "Click a category to view available bed spaces"
+                : "Select a floor or wing category to continue"}
             </span>
           </div>
 
@@ -404,7 +412,7 @@ export default function SelectHostel() {
                 hostel={hostel}
                 selected={selected}
                 onSelectCategory={handleSelectCategory}
-                isDisabled={saving || hasExistingSelection}
+                isDisabled={saving}
               />
             ))}
           </div>

@@ -1,3 +1,4 @@
+// Sidebar.jsx
 import React, { useState } from "react";
 import {
   LayoutGrid,
@@ -104,12 +105,10 @@ function Sidebar({ isCollapsed, toggleSidebar, isMobileOpen, onMobileClose }) {
 
   const isFinanceActive = location.pathname.startsWith("/payments");
 
-  // Close sidebar on mobile when a link is clicked
   const handleNavigate = (page) => {
     if (page) {
       navigate(page);
     }
-    // Close mobile sidebar after navigation
     if (onMobileClose) {
       onMobileClose();
     }
@@ -131,7 +130,7 @@ function Sidebar({ isCollapsed, toggleSidebar, isMobileOpen, onMobileClose }) {
           bg-[#343a40]
           text-slate-200
           transition-all duration-300
-          ${isCollapsed ? "w-20" : "w-57"} 
+          ${isCollapsed ? "w-20" : "w-64"}
           shrink-0
           fixed lg:relative
           top-0 left-0
