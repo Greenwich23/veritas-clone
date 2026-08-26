@@ -20,6 +20,7 @@ import {
   FileSpreadsheet,
   List,
   ArrowLeftRight,
+  Trash2,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -44,7 +45,7 @@ const MOCK_PAYMENTS = [
     id: 1,
     matric: "VUG/CSC/23/9682",
     session: "2025/2026",
-    description: "Tuition and Accomodation Fee",
+    description: "Tuition and Accommodation Fee",
     amount: 1019500.0,
     rrr: "261472944485",
     status: "Successfully paid",
@@ -65,7 +66,7 @@ const MOCK_PAYMENTS = [
     id: 2,
     matric: "VUG/CSC/23/9682",
     session: "2025/2026",
-    description: "Tuition and Accomodation Fee",
+    description: "Tuition and Accommodation Fee",
     amount: 509750.0,
     rrr: "131429261434",
     status: "Successful",
@@ -86,7 +87,7 @@ const MOCK_PAYMENTS = [
     id: 3,
     matric: "VUG/CSC/23/9682",
     session: "2025/2026",
-    description: "Tuition and Accomodation Fee",
+    description: "Tuition and Accommodation Fee",
     amount: 509750.0,
     rrr: "301321139518",
     status: "Successful",
@@ -121,10 +122,10 @@ const STUDENT = {
 };
 
 // ---------------------------------------------------------------------------
-// LIST VIEW
+// LIST VIEW WITH DELETE
 // ---------------------------------------------------------------------------
 
-function PaymentListView({ payments, onView }) {
+function PaymentListView({ payments, onView, onDelete }) {
   return (
     <div>
       <div className="flex justify-between items-baseline flex-wrap gap-2 mb-4">
@@ -175,6 +176,9 @@ function PaymentListView({ payments, onView }) {
         <div className="flex items-center gap-2.5 px-5 py-4 text-base font-semibold text-[#2b3342] border-b border-slate-200">
           <GraduationCap size={18} className="text-[#2f7dc0]" />
           Tuition Fee Payment History
+          {/* <span className="text-sm font-normal text-slate-500 ml-2">
+            ({payments.length} payments)
+          </span> */}
         </div>
 
         <div className="overflow-x-auto">
@@ -190,7 +194,7 @@ function PaymentListView({ payments, onView }) {
                   "RRR",
                   "Status",
                   "Payment Date",
-                  "View",
+                  "Actions",
                 ].map((h) => (
                   <th
                     key={h}
@@ -205,14 +209,18 @@ function PaymentListView({ payments, onView }) {
               {payments.map((p, idx) => (
                 <tr
                   key={p.id}
-                  className="border-b border-slate-200 hover:bg-slate-50"
+                  className="border-b border-slate-200 hover:bg-slate-50 transition-colors"
                 >
                   <td className="px-4 py-3.5">{idx + 1}</td>
                   <td className="px-4 py-3.5">{p.matric}</td>
                   <td className="px-4 py-3.5">{p.session}</td>
                   <td className="px-4 py-3.5">{p.description}</td>
                   <td className="px-4 py-3.5">{naira(p.amount)}</td>
-                  <td className="px-4 py-3.5">{p.rrr}</td>
+                  <td className="px-4 py-3.5">
+                    <span className="font-mono text-xs bg-slate-100 px-2 py-1 rounded">
+                      {p.rrr}
+                    </span>
+                  </td>
                   <td
                     className={`px-4 py-3.5 ${
                       isPositiveStatus(p.status)
@@ -224,13 +232,22 @@ function PaymentListView({ payments, onView }) {
                   </td>
                   <td className="px-4 py-3.5 whitespace-nowrap">{p.date}</td>
                   <td className="px-4 py-3.5">
-                    <button
-                      title="View Receipt"
-                      onClick={() => onView(p.id)}
-                      className="text-[#2f7dc0] hover:text-[#1c3f66] bg-transparent border-none cursor-pointer"
-                    >
-                      <BookOpen size={18} />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        title="View Receipt"
+                        onClick={() => onView(p.id)}
+                        className="text-[#2f7dc0] hover:text-[#1c3f66] bg-transparent border-none cursor-pointer p-1 hover:bg-slate-100 rounded transition-colors"
+                      >
+                        <BookOpen size={16} />
+                      </button>
+                      <button
+                        title="Delete Payment"
+                        onClick={() => onDelete(p.id)}
+                        className="text-red-500 hover:text-red-700 bg-transparent border-none cursor-pointer p-1 hover:bg-red-50 rounded transition-colors"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -862,7 +879,7 @@ function getPaymentFromLocalStorage() {
 }
 
 // ============================================================
-// ROOT COMPONENT
+// ROOT COMPONENT WITH DELETE
 // ============================================================
 
 export default function PaymentHistoryPage() {
@@ -914,15 +931,46 @@ export default function PaymentHistoryPage() {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
+  // ✅ DELETE PAYMENT FUNCTION
+  const handleDeletePayment = (id) => {
+    // Find the payment to delete
+    const paymentToDelete = payments.find((p) => p.id === id);
+
+    // Show confirmation dialog
+    if (
+      window.confirm(
+        `Are you sure you want to delete this payment?\nRRR: ${paymentToDelete?.rrr}`,
+      )
+    ) {
+      // Remove from state
+      setPayments((prev) => prev.filter((p) => p.id !== id));
+
+      // If the deleted payment was from localStorage, also remove from localStorage
+      if (
+        paymentToDelete &&
+        localStorage.getItem("veritas_payment_reference") ===
+          paymentToDelete.rrr
+      ) {
+        localStorage.removeItem("veritas_payment_status");
+        localStorage.removeItem("veritas_payment_reference");
+        localStorage.removeItem("veritas_payment_status");
+        console.log("🗑️ Payment removed from localStorage");
+      }
+
+      // If the active payment is the one being deleted, close the receipt view
+      if (activeId === id) {
+        setActiveId(null);
+      }
+
+      console.log("🗑️ Payment deleted successfully");
+    }
+  };
+
   const activePayment = payments.find((p) => p.id === activeId) || null;
 
   return (
     <div className="min-h-screen flex bg-[#f3f5f8]">
-      {/* <Sidebar open={sidebarOpen} /> */}
-
       <div className="flex-1 flex flex-col min-w-0">
-        {/* <TopBar onMenuClick={() => setSidebarOpen((v) => !v)} /> */}
-
         <div className="p-4 md:p-7 pb-12 overflow-y-auto">
           {activePayment ? (
             <ReceiptView
@@ -933,6 +981,7 @@ export default function PaymentHistoryPage() {
             <PaymentListView
               payments={payments}
               onView={(id) => setActiveId(id)}
+              onDelete={handleDeletePayment}
             />
           )}
         </div>

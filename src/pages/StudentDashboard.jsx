@@ -14,9 +14,27 @@ import {
   MessageSquare,
   BedDouble,
   HelpCircle,
+  Trash2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+
+// You can put this in ANY component, ANY page
+const clearPaymentData = () => {
+  if (
+    window.confirm(
+      "⚠️ Clear ALL payment data from this device?\n\nThis will remove:\n- Payment status\n- Payment reference\n- Hostel selection\n\nThis action cannot be undone!",
+    )
+  ) {
+    localStorage.removeItem("veritas_payment_status");
+    localStorage.removeItem("veritas_payment_reference");
+    localStorage.removeItem("veritas_payment_status");
+    localStorage.removeItem("veritas_hostel_selection");
+    localStorage.removeItem("veritas_selected_bed_space");
+    alert("✅ Data cleared successfully!");
+    window.location.reload();
+  }
+};
 
 // Profile Card Component
 function ProfileCard({ student }) {
@@ -252,6 +270,7 @@ export default function StudentDashboard() {
               Quick links
             </h3>
           </div>
+
           <div className="h-px bg-slate-200 mx-4 md:mx-8 mt-3" />
 
           <div className="px-4 md:px-4 py-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4">
@@ -261,8 +280,17 @@ export default function StudentDashboard() {
           </div>
 
           {/* Footer */}
+          {/* Footer */}
           <footer className="text-center text-sm text-slate-500 font-medium py-4 border-t border-slate-200">
             Copyright &copy; Veritas University Abuja 2026.
+            {/* Hidden clear data button - only visible on hover or as a small link */}
+            <button
+              onClick={clearPaymentData}
+              className="flex items-center gap-2 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs rounded-lg transition-colors flex items-center m-auto mt-50"
+            >
+              <Trash2 size={14} />
+              Clear Data
+            </button>
           </footer>
         </main>
       </div>
