@@ -670,7 +670,7 @@ function ReceiptView({ payment, onBack }) {
               <img
                 src="https://admission.veritas.edu.ng/ui/dist/img/veritasin.png"
                 alt="Veritas University crest"
-                className="w-[250px] h-[100px] object-contain border-2 border-amber-500"
+                className="w-[250px] h-[100px] object-contain"
               />
             </div>
             <img
