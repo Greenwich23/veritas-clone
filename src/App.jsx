@@ -10,6 +10,7 @@ import ViewAvailableBedSpace from "./pages/ViewAvailableBedSpace";
 import ScrollToTopSmooth from "./components/ScrollToTop";
 import TuitionAccommodationFee from "./pages/TuitionAccommodationFee";
 import LoginPage from "./pages/LoginPage";
+import PaymentHistory from "./pages/PaymentHistory";
 
 function App() {
   return (
@@ -44,6 +45,11 @@ function App() {
           <Route
             path="/payments/payment-plan"
             element={<TuitionAccommodationFee />}
+          />
+
+          <Route
+            path="/payments/payment-history"
+            element={<PaymentHistory />}
           />
 
           <Route path="/academics" element={<Academics />} />

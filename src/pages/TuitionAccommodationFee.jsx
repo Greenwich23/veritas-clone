@@ -226,8 +226,8 @@ export default function TuitionAccommodationFee() {
   const paystackConfig = {
     reference: `veritas_${Date.now()}`,
     email: student?.email || "student@veritas.edu.ng",
-    amount: Math.round(planAmount * 100),
-    // amount: Math.round(50 * 100),
+    // amount: Math.round(planAmount * 100),
+    amount: Math.round(50 * 100),
     publicKey: PAYSTACK_PUBLIC_KEY,
     metadata: {
       custom_fields: [
