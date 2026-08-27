@@ -62,7 +62,7 @@ function InfoPills({ student }) {
         Hostel selection is confirmed after{" "}
         <span className="font-semibold">successful payment</span>
       </div>
-      <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-md px-4 py-2.5 text-sm text-slate-700">
+      {/* <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-md px-4 py-2.5 text-sm text-slate-700">
         <ShieldCheck
           size={16}
           className={`${student?.paymentStatus === "success" ? "text-green-600" : "text-yellow-600"}`}
@@ -77,7 +77,7 @@ function InfoPills({ student }) {
         >
           {student?.paymentStatus === "success" ? "✅ Paid" : "⏳ Pending"}
         </span>
-      </div>
+      </div> */}
     </div>
   );
 }
