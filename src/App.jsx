@@ -10,7 +10,7 @@ import ViewAvailableBedSpace from "./pages/ViewAvailableBedSpace";
 import ScrollToTopSmooth from "./components/ScrollToTop";
 import TuitionAccommodationFee from "./pages/TuitionAccommodationFee";
 import LoginPage from "./pages/LoginPage";
-import PaymentHistory from "./pages/PaymentHistory";
+import PaymentHistory from "./pages/PaymentHistoryPage";
 
 function App() {
   return (

@@ -2,7 +2,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import React, { useState, useEffect, useRef } from "react";
 import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+import html2canvas from "html2canvas-pro";
 import {
   LayoutGrid,
   Crosshair,
@@ -46,6 +46,27 @@ const isPositiveStatus = (s) => /paid|successful/i.test(s);
 const MOCK_PAYMENTS = [
   {
     id: 1,
+    matric: "vug/csc/23/9680",
+    session: "2026/2027",
+    description: "Tuition and Accommodation Fee",
+    amount: 2597850.0,
+    rrr: "PSK_9682",
+    status: "Successful",
+    date: "2026-08-27 21:08:59",
+    category: "100%",
+    tuitionFee: 2217850.0,
+    accommodationFee: 380000.0,
+    totalDue: 2597850.0,
+    vat: 0,
+    amountPaid: 2597850.0,
+    balance: 0,
+    hostel: "HOSTEL S, Ground Floor",
+    room: "Room 6",
+    position: "Bunk 1, Position Down",
+    method: "Paystack",
+  },
+  {
+    id: 2,
     matric: "VUG/CSC/23/9682",
     session: "2025/2026",
     description: "Tuition and Accommodation Fee",
@@ -66,7 +87,7 @@ const MOCK_PAYMENTS = [
     method: "Paystack",
   },
   {
-    id: 2,
+    id: 3,
     matric: "VUG/CSC/23/9682",
     session: "2025/2026",
     description: "Tuition and Accommodation Fee",
@@ -87,7 +108,7 @@ const MOCK_PAYMENTS = [
     method: "Remita",
   },
   {
-    id: 3,
+    id: 4,
     matric: "VUG/CSC/23/9682",
     session: "2025/2026",
     description: "Tuition and Accommodation Fee",
@@ -288,11 +309,70 @@ function InfoRow({ leftLabel, leftValue, rightLabel, rightValue }) {
 // RECEIPT (DETAIL) VIEW WITH REAL PDF DOWNLOAD
 // ---------------------------------------------------------------------------
 
+// Fetches an image and converts it to a base64 data URL, so it can be drawn
+// into the receipt/canvas regardless of whether the remote host sends CORS
+// headers. Returns null (instead of throwing) if the fetch itself is blocked,
+// so the caller can just fall back to the original remote URL.
+async function toDataUrl(url) {
+  try {
+    const response = await fetch(url, { mode: "cors" });
+    if (!response.ok) return null;
+    const blob = await response.blob();
+    return await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (err) {
+    console.warn(
+      "Could not convert image to data URL, using remote src instead:",
+      url,
+      err,
+    );
+    return null;
+  }
+}
+
 function ReceiptView({ payment, onBack }) {
   // Everything inside this ref (the receipt card AND the important note)
   // gets captured and turned into the PDF.
   const printRef = useRef(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+
+  // Pre-converted (base64) versions of the crest and student photo. Using
+  // data URLs instead of remote <img src> means html2canvas never has to
+  // deal with a cross-origin image at all, so there's nothing to taint the
+  // canvas. Falls back to the original remote URL if conversion fails.
+  //
+  // NOTE: admission.veritas.edu.ng does not send an
+  // Access-Control-Allow-Origin header, so the browser will always refuse
+  // to read that image's pixels cross-origin — no client-side code can work
+  // around that. The real fix is to stop depending on that remote URL:
+  // download the crest once and serve it from your own app instead, e.g.
+  // drop it in /public/veritas-crest.png and reference "/veritas-crest.png"
+  // below. Same-origin assets never hit a CORS wall.
+  const [crestSrc, setCrestSrc] = useState(
+    "https://admission.veritas.edu.ng/ui/dist/img/veritasin.png",
+  );
+  const [studentPhotoSrc, setStudentPhotoSrc] = useState(STUDENT.photo);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    toDataUrl(
+      "https://admission.veritas.edu.ng/ui/dist/img/veritasin.png",
+    ).then((dataUrl) => {
+      if (!cancelled && dataUrl) setCrestSrc(dataUrl);
+    });
+    toDataUrl(STUDENT.photo).then((dataUrl) => {
+      if (!cancelled && dataUrl) setStudentPhotoSrc(dataUrl);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleDownload = async () => {
     if (!printRef.current || isGeneratingPdf) return;
@@ -304,7 +384,6 @@ function ReceiptView({ payment, onBack }) {
       const canvas = await html2canvas(printRef.current, {
         scale: 2, // sharper output
         useCORS: true, // allow cross-origin images (crest / student photo)
-        allowTaint: true,
         backgroundColor: "#ffffff",
         windowWidth: printRef.current.scrollWidth,
         windowHeight: printRef.current.scrollHeight,
@@ -342,7 +421,9 @@ function ReceiptView({ payment, onBack }) {
 
       pdf.save(`Payment_Receipt_${payment.rrr}.pdf`);
     } catch (err) {
-      console.error("Could not generate PDF:", err);
+      // Log the REAL error (SecurityError from a tainted canvas, a network
+      // failure, etc.) instead of only ever seeing the generic alert below.
+      console.error("Could not generate PDF:", err.name, err.message, err);
       alert("Sorry, the receipt PDF could not be generated. Please try again.");
     } finally {
       setIsGeneratingPdf(false);
@@ -418,16 +499,14 @@ function ReceiptView({ payment, onBack }) {
             <div className="flex justify-between items-center gap-4 flex-wrap mb-1.5">
               <div className="flex items-center gap-3.5">
                 <img
-                  src="https://admission.veritas.edu.ng/ui/dist/img/veritasin.png"
+                  src={crestSrc}
                   alt="Veritas University crest"
-                  crossOrigin="anonymous"
                   className="w-[250px] h-[100px] object-contain"
                 />
               </div>
               <img
-                src={STUDENT.photo}
+                src={studentPhotoSrc}
                 alt="student"
-                crossOrigin="anonymous"
                 className="w-40 h-40 rounded-full object-cover border-2 border-slate-100 bg-slate-200"
               />
             </div>
@@ -527,8 +606,8 @@ function ReceiptView({ payment, onBack }) {
             Important Note
           </div>
           <p className="text-[14.5px] text-[#333c47] m-0">
-            After payment of <strong>all the required fees</strong>, kindly print
-            two copies of your <strong>Clearance Form</strong> and{" "}
+            After payment of <strong>all the required fees</strong>, kindly
+            print two copies of your <strong>Clearance Form</strong> and{" "}
             <strong>Credit Form</strong> from your dashboard.
           </p>
           <ul className="text-[14.5px] text-[#333c47] leading-7 pl-5 my-2">
@@ -586,12 +665,13 @@ function getPaymentFromLocalStorage() {
     // A STABLE id/reference — derived from the real Paystack reference so
     // repeat mounts don't keep generating a "new" payment every time.
     const rrr =
-      lastPayment?.reference ||
-      legacyRef ||
-      `PSK_${student?.regNo || "9682"}`;
+      lastPayment?.reference || legacyRef || `PSK_${student?.regNo || "9682"}`;
 
     const date = lastPayment?.paidAt
-      ? new Date(lastPayment.paidAt).toISOString().replace("T", " ").slice(0, 19)
+      ? new Date(lastPayment.paidAt)
+          .toISOString()
+          .replace("T", " ")
+          .slice(0, 19)
       : new Date().toISOString().replace("T", " ").slice(0, 19);
 
     return {

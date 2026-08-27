@@ -292,7 +292,7 @@ export default function TuitionAccommodationFee() {
 
         // Persist the ACTUAL verified numbers (not a guess) so the Payment
         // History page can build an accurate, stable receipt from this —
-        // instead of re-generating a new fake reference every time it mounts.
+        // instead of re-generating a fake reference every time it mounts.
         localStorage.setItem(
           "veritas_last_payment",
           JSON.stringify({
@@ -306,8 +306,8 @@ export default function TuitionAccommodationFee() {
           }),
         );
 
-        // Keep the reference around (don't delete it) — the history page
-        // relies on it for a stable, de-duplicated receipt id.
+        // Keep the reference around (don't delete it) — the history page's
+        // legacy fallback relies on it for a stable receipt id.
 
         setTimeout(() => {
           setIsLoading(false);
