@@ -1,6 +1,8 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/set-state-in-effect */
 import React, { useState, useEffect, useRef } from "react";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import {
   LayoutGrid,
   Crosshair,
@@ -21,6 +23,7 @@ import {
   List,
   ArrowLeftRight,
   Trash2,
+  Loader,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -176,9 +179,6 @@ function PaymentListView({ payments, onView, onDelete }) {
         <div className="flex items-center gap-2.5 px-5 py-4 text-base font-semibold text-[#2b3342] border-b border-slate-200">
           <GraduationCap size={18} className="text-[#2f7dc0]" />
           Tuition Fee Payment History
-          {/* <span className="text-sm font-normal text-slate-500 ml-2">
-            ({payments.length} payments)
-          </span> */}
         </div>
 
         <div className="overflow-x-auto">
@@ -285,343 +285,68 @@ function InfoRow({ leftLabel, leftValue, rightLabel, rightValue }) {
 }
 
 // ---------------------------------------------------------------------------
-// RECEIPT (DETAIL) VIEW WITH DOWNLOAD
+// RECEIPT (DETAIL) VIEW WITH REAL PDF DOWNLOAD
 // ---------------------------------------------------------------------------
 
 function ReceiptView({ payment, onBack }) {
-  const receiptRef = useRef(null);
+  // Everything inside this ref (the receipt card AND the important note)
+  // gets captured and turned into the PDF.
+  const printRef = useRef(null);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
-  const handleDownload = () => {
-    // Build the receipt HTML content
-    const receiptHTML = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <title>Payment Receipt - ${payment.rrr}</title>
-        <style>
-          /* Base styles */
-          * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-          }
-          body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: white;
-            padding: 40px 30px;
-            color: #2b3342;
-          }
-          .receipt-container {
-            max-width: 900px;
-            margin: 0 auto;
-            background: white;
-          }
-          .receipt-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #1c3f66;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-          }
-          .receipt-header-left {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-          }
-          .receipt-header-left img {
-            height: 60px;
-            width: auto;
-            object-fit: contain;
-          }
-          .receipt-header-left h1 {
-            font-size: 20px;
-            color: #1c3f66;
-            font-weight: 700;
-          }
-          .receipt-header-left h2 {
-            font-size: 16px;
-            color: #1c5c3e;
-            font-weight: 600;
-          }
-          .student-photo {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #e2e8f0;
-          }
-          .receipt-title {
-            text-align: center;
-            font-size: 18px;
-            font-weight: 700;
-            color: #1c3f66;
-            margin-bottom: 20px;
-            padding: 10px;
-            background: #f0f4f9;
-            border-radius: 8px;
-          }
-          table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-          }
-          table td {
-            padding: 10px 14px;
-            border: 1px solid #e2e8f0;
-            font-size: 13px;
-          }
-          .label-cell {
-            background: #f8fafc;
-            font-weight: 600;
-            color: #1c3f66;
-            width: 16%;
-          }
-          .value-cell {
-            width: 34%;
-            color: #333c47;
-          }
-          .section-title {
-            background: #eaf1fb;
-            text-align: center;
-            font-weight: 700;
-            color: #1c3f66;
-            font-size: 14px;
-            padding: 12px;
-          }
-          .status-paid {
-            color: #1f8a3d;
-            font-weight: 600;
-          }
-          .status-pending {
-            color: #d69e2e;
-            font-weight: 600;
-          }
-          .important-note {
-            margin-top: 25px;
-            padding: 18px 20px;
-            background: #eef6fb;
-            border: 1px solid #d6e9f5;
-            border-radius: 8px;
-          }
-          .important-note h4 {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-            font-weight: 700;
-            color: #2b3342;
-            margin-bottom: 8px;
-          }
-          .important-note p, .important-note li {
-            font-size: 13px;
-            color: #333c47;
-            line-height: 1.6;
-          }
-          .important-note ul {
-            padding-left: 20px;
-            margin: 8px 0;
-          }
-          .footer {
-            margin-top: 25px;
-            text-align: center;
-            font-size: 11px;
-            color: #94a3b8;
-            border-top: 1px solid #e2e8f0;
-            padding-top: 15px;
-          }
-          .receipt-id {
-            font-size: 11px;
-            color: #94a3b8;
-            text-align: right;
-            margin-top: 5px;
-          }
-          .badge {
-            display: inline-block;
-            padding: 2px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-          }
-          .badge-success {
-            background: #d4edda;
-            color: #155724;
-          }
-          .badge-warning {
-            background: #fff3cd;
-            color: #856404;
-          }
-          .hostel-details {
-            background: #f0f7ff;
-            border-radius: 6px;
-            padding: 10px 14px;
-            margin-top: 5px;
-          }
-          .hostel-details span {
-            font-weight: 600;
-            color: #1c3f66;
-          }
-          .no-print { display: none !important; }
-          @media print {
-            body { padding: 20px; }
-            .no-print { display: none !important; }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="receipt-container">
-          <!-- Header -->
-          <div class="receipt-header">
-            <div class="receipt-header-left">
-              <img src="https://admission.veritas.edu.ng/ui/dist/img/veritasin.png" alt="Veritas University" />
-              <div>
-                <h1>Veritas University</h1>
-                <h2>Payment Receipt</h2>
-              </div>
-            </div>
-            <img src="${STUDENT.photo}" alt="Student" class="student-photo" />
-          </div>
+  const handleDownload = async () => {
+    if (!printRef.current || isGeneratingPdf) return;
 
-          <div class="receipt-title">OFFICIAL PAYMENT RECEIPT</div>
+    setIsGeneratingPdf(true);
 
-          <!-- Student Info -->
-          <table>
-            <tbody>
-              <tr>
-                <td class="label-cell">Name</td>
-                <td class="value-cell">${STUDENT.name}</td>
-                <td class="label-cell">Matric No</td>
-                <td class="value-cell">${STUDENT.matric}</td>
-              </tr>
-              <tr>
-                <td class="label-cell">Email</td>
-                <td class="value-cell">${STUDENT.email}</td>
-                <td class="label-cell">Phone No</td>
-                <td class="value-cell">${STUDENT.phone}</td>
-              </tr>
-              <tr>
-                <td class="label-cell">Level</td>
-                <td class="value-cell">${STUDENT.level}</td>
-                <td class="label-cell">Programme</td>
-                <td class="value-cell">${STUDENT.programme}</td>
-              </tr>
-              <tr>
-                <td class="label-cell">Session</td>
-                <td class="value-cell">${payment.session}</td>
-                <td class="label-cell">Gender</td>
-                <td class="value-cell">${STUDENT.gender}</td>
-              </tr>
-              <tr>
-                <td colspan="4" class="section-title">Tuition Fee Payment Details</td>
-              </tr>
-              <tr>
-                <td class="label-cell">Payment Description</td>
-                <td class="value-cell">${payment.description}</td>
-                <td class="label-cell">Payment Category</td>
-                <td class="value-cell">${payment.category}</td>
-              </tr>
-              <tr>
-                <td class="label-cell">Tuition Fee</td>
-                <td class="value-cell">${naira(payment.tuitionFee)}</td>
-                <td class="label-cell">Accommodation Fee</td>
-                <td class="value-cell">${naira(payment.accommodationFee)}</td>
-              </tr>
-              <tr>
-                <td class="label-cell">Total Amount Due</td>
-                <td class="value-cell"><strong>${naira(payment.totalDue)}</strong></td>
-                <td class="label-cell">Reference No</td>
-                <td class="value-cell" style="font-size:11px;word-break:break-all;">${payment.rrr}</td>
-              </tr>
-              <tr>
-                <td class="label-cell">VAT (0%)</td>
-                <td class="value-cell">${naira(payment.vat)}</td>
-                <td class="label-cell"></td>
-                <td class="value-cell"></td>
-              </tr>
-              <tr>
-                <td class="label-cell">Amount Paid</td>
-                <td class="value-cell"><strong style="color:#1f8a3d;">${naira(payment.amountPaid)}</strong></td>
-                <td class="label-cell">Payment Date</td>
-                <td class="value-cell">${payment.date}</td>
-              </tr>
-              <tr>
-                <td class="label-cell">Balance</td>
-                <td class="value-cell"><strong style="color:#d69e2e;">${naira(payment.balance)}</strong></td>
-                <td class="label-cell">Payment Status</td>
-                <td class="value-cell">
-                  <span class="badge ${isPositiveStatus(payment.status) ? "badge-success" : "badge-warning"}">
-                    ${payment.status}
-                  </span>
-                </td>
-              </tr>
-              <tr>
-                <td class="label-cell">Hostel</td>
-                <td class="value-cell">
-                  <div class="hostel-details">
-                    <span>${payment.hostel}</span>
-                  </div>
-                </td>
-                <td class="label-cell">Room</td>
-                <td class="value-cell">${payment.room}</td>
-              </tr>
-              <tr>
-                <td class="label-cell">Position</td>
-                <td class="value-cell">${payment.position}</td>
-                <td class="label-cell">Payment Method</td>
-                <td class="value-cell">${payment.method}</td>
-              </tr>
-            </tbody>
-          </table>
+    try {
+      // Render the receipt DOM node to a high-resolution canvas image.
+      const canvas = await html2canvas(printRef.current, {
+        scale: 2, // sharper output
+        useCORS: true, // allow cross-origin images (crest / student photo)
+        allowTaint: true,
+        backgroundColor: "#ffffff",
+        windowWidth: printRef.current.scrollWidth,
+        windowHeight: printRef.current.scrollHeight,
+      });
 
-          <!-- Important Note -->
-          <div class="important-note">
-            <h4>📋 Important Note</h4>
-            <p>
-              After payment of <strong>all the required fees</strong>, kindly print
-              two copies of your <strong>Clearance Form</strong> and{" "}
-              <strong>Credit Form</strong> from your dashboard.
-            </p>
-            <ul>
-              <li>
-                The <strong>Credit Form</strong> should be submitted at{" "}
-                <strong>Debt Recovery Office</strong> in Block A.
-              </li>
-              <li>
-                The <strong>Clearance Form</strong> should be submitted at{" "}
-                <strong>Bursary Unit</strong> in Senate Building upon resumption.
-              </li>
-            </ul>
-            <p style="color:#d69e2e;font-size:12px;margin-top:5px;">
-              ⚠️ Failure to submit these documents may delay your clearance.
-            </p>
-          </div>
+      const imgData = canvas.toDataURL("image/png");
 
-          <div class="footer">
-            <p>This is a computer-generated receipt. No signature required.</p>
-            <p>Generated on: ${new Date().toLocaleString()}</p>
-            <div class="receipt-id">Receipt ID: ${payment.rrr}</div>
-          </div>
-        </div>
-      </body>
-    </html>
-  `;
+      // A4 in points: 595.28 x 841.89
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "pt",
+        format: "a4",
+      });
 
-    // Create a blob with the HTML content
-    const blob = new Blob([receiptHTML], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
 
-    // Create a download link
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `Payment_Receipt_${payment.rrr}.html`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      // Scale the captured image to fit the PDF's page width, preserving
+      // aspect ratio, then paginate vertically if it's taller than one page.
+      const imgWidth = pageWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-    // Clean up the URL
-    setTimeout(() => {
-      URL.revokeObjectURL(url);
-    }, 100);
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save(`Payment_Receipt_${payment.rrr}.pdf`);
+    } catch (err) {
+      console.error("Could not generate PDF:", err);
+      alert("Sorry, the receipt PDF could not be generated. Please try again.");
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
   return (
@@ -667,148 +392,159 @@ function ReceiptView({ payment, onBack }) {
         </button>
         <button
           onClick={handleDownload}
-          className="btn bg-[#1fa6a6] hover:bg-[#178888] flex text-white items-center p-[10px] gap-1.5 rounded-[10px]"
+          disabled={isGeneratingPdf}
+          className="btn bg-[#1fa6a6] hover:bg-[#178888] disabled:opacity-60 flex text-white items-center p-[10px] gap-1.5 rounded-[10px]"
         >
-          <Download size={15} /> Download
+          {isGeneratingPdf ? (
+            <>
+              <Loader size={15} className="animate-spin" /> Generating PDF...
+            </>
+          ) : (
+            <>
+              <Download size={15} /> Download
+            </>
+          )}
         </button>
       </div>
 
-      <div
-        className="bg-white border border-slate-200 rounded-lg w-full"
-        ref={receiptRef}
-      >
-        <div className="px-6 py-4 font-semibold text-base text-[#2b3342] border-b border-slate-200">
-          Payment Receipt
-        </div>
-
-        <div className="px-6 md:px-8 pt-7 pb-3">
-          <div className="flex justify-between items-center gap-4 flex-wrap mb-1.5">
-            <div className="flex items-center gap-3.5">
-              <img
-                src="https://admission.veritas.edu.ng/ui/dist/img/veritasin.png"
-                alt="Veritas University crest"
-                className="w-[250px] h-[100px] object-contain"
-              />
-            </div>
-            <img
-              src={STUDENT.photo}
-              alt="student"
-              className="w-40 h-40 rounded-full object-cover border-2 border-slate-100 bg-slate-200"
-            />
+      {/* Everything inside this wrapper is what gets rendered into the PDF */}
+      <div ref={printRef}>
+        <div className="bg-white border border-slate-200 rounded-lg w-full">
+          <div className="px-6 py-4 font-semibold text-base text-[#2b3342] border-b border-slate-200">
+            Payment Receipt
           </div>
 
-          <table className="w-full border-collapse mt-3.5">
-            <tbody>
-              <InfoRow
-                leftLabel="Name"
-                leftValue={STUDENT.name}
-                rightLabel="Matric No"
-                rightValue={STUDENT.matric}
+          <div className="px-6 md:px-8 pt-7 pb-3">
+            <div className="flex justify-between items-center gap-4 flex-wrap mb-1.5">
+              <div className="flex items-center gap-3.5">
+                <img
+                  src="https://admission.veritas.edu.ng/ui/dist/img/veritasin.png"
+                  alt="Veritas University crest"
+                  crossOrigin="anonymous"
+                  className="w-[250px] h-[100px] object-contain"
+                />
+              </div>
+              <img
+                src={STUDENT.photo}
+                alt="student"
+                crossOrigin="anonymous"
+                className="w-40 h-40 rounded-full object-cover border-2 border-slate-100 bg-slate-200"
               />
-              <InfoRow
-                leftLabel="Email"
-                leftValue={STUDENT.email}
-                rightLabel="Phone No"
-                rightValue={STUDENT.phone}
-              />
-              <InfoRow
-                leftLabel="Level"
-                leftValue={STUDENT.level}
-                rightLabel="Programme"
-                rightValue={STUDENT.programme}
-              />
-              <InfoRow
-                leftLabel="Session"
-                leftValue={payment.session}
-                rightLabel="Gender"
-                rightValue={STUDENT.gender}
-              />
+            </div>
 
-              <tr>
-                <td
-                  colSpan={4}
-                  className="bg-[#eaf1fb] text-center font-bold text-[#1c3f66] text-[15px] border border-slate-200 py-3"
-                >
-                  Tuition Fee Payment Details
-                </td>
-              </tr>
+            <table className="w-full border-collapse mt-3.5">
+              <tbody>
+                <InfoRow
+                  leftLabel="Name"
+                  leftValue={STUDENT.name}
+                  rightLabel="Matric No"
+                  rightValue={STUDENT.matric}
+                />
+                <InfoRow
+                  leftLabel="Email"
+                  leftValue={STUDENT.email}
+                  rightLabel="Phone No"
+                  rightValue={STUDENT.phone}
+                />
+                <InfoRow
+                  leftLabel="Level"
+                  leftValue={STUDENT.level}
+                  rightLabel="Programme"
+                  rightValue={STUDENT.programme}
+                />
+                <InfoRow
+                  leftLabel="Session"
+                  leftValue={payment.session}
+                  rightLabel="Gender"
+                  rightValue={STUDENT.gender}
+                />
 
-              <InfoRow
-                leftLabel="Payment Description"
-                leftValue={payment.description}
-                rightLabel="Payment Category"
-                rightValue={payment.category}
-              />
-              <InfoRow
-                leftLabel="Tuition Fee"
-                leftValue={naira(payment.tuitionFee)}
-                rightLabel="Accommodation Fee"
-                rightValue={naira(payment.accommodationFee)}
-              />
-              <InfoRow
-                leftLabel="Total Amount Due"
-                leftValue={naira(payment.totalDue)}
-                rightLabel="Reference No"
-                rightValue={payment.rrr}
-              />
-              <InfoRow
-                leftLabel="VAT (0%)"
-                leftValue={naira(payment.vat)}
-                rightLabel=""
-                rightValue=""
-              />
-              <InfoRow
-                leftLabel="Amount Paid"
-                leftValue={naira(payment.amountPaid)}
-                rightLabel="Payment Date"
-                rightValue={payment.date}
-              />
-              <InfoRow
-                leftLabel="Balance"
-                leftValue={naira(payment.balance)}
-                rightLabel="Payment Status"
-                rightValue={payment.status}
-              />
-              <InfoRow
-                leftLabel="Hostel"
-                leftValue={payment.hostel}
-                rightLabel="Room"
-                rightValue={payment.room}
-              />
-              <InfoRow
-                leftLabel="Position"
-                leftValue={payment.position}
-                rightLabel="Payment Method"
-                rightValue={payment.method}
-              />
-            </tbody>
-          </table>
+                <tr>
+                  <td
+                    colSpan={4}
+                    className="bg-[#eaf1fb] text-center font-bold text-[#1c3f66] text-[15px] border border-slate-200 py-3"
+                  >
+                    Tuition Fee Payment Details
+                  </td>
+                </tr>
+
+                <InfoRow
+                  leftLabel="Payment Description"
+                  leftValue={payment.description}
+                  rightLabel="Payment Category"
+                  rightValue={payment.category}
+                />
+                <InfoRow
+                  leftLabel="Tuition Fee"
+                  leftValue={naira(payment.tuitionFee)}
+                  rightLabel="Accommodation Fee"
+                  rightValue={naira(payment.accommodationFee)}
+                />
+                <InfoRow
+                  leftLabel="Total Amount Due"
+                  leftValue={naira(payment.totalDue)}
+                  rightLabel="Reference No"
+                  rightValue={payment.rrr}
+                />
+                <InfoRow
+                  leftLabel="VAT (0%)"
+                  leftValue={naira(payment.vat)}
+                  rightLabel=""
+                  rightValue=""
+                />
+                <InfoRow
+                  leftLabel="Amount Paid"
+                  leftValue={naira(payment.amountPaid)}
+                  rightLabel="Payment Date"
+                  rightValue={payment.date}
+                />
+                <InfoRow
+                  leftLabel="Balance"
+                  leftValue={naira(payment.balance)}
+                  rightLabel="Payment Status"
+                  rightValue={payment.status}
+                />
+                <InfoRow
+                  leftLabel="Hostel"
+                  leftValue={payment.hostel}
+                  rightLabel="Room"
+                  rightValue={payment.room}
+                />
+                <InfoRow
+                  leftLabel="Position"
+                  leftValue={payment.position}
+                  rightLabel="Payment Method"
+                  rightValue={payment.method}
+                />
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
 
-      <div className="mt-6 mb-8 bg-[#eef6fb] border border-[#d6e9f5] rounded-lg px-5 py-4.5 no-print">
-        <div className="flex items-center gap-2.5 font-bold text-base text-[#2b3342] mb-2.5">
-          <Info size={18} />
-          Important Note
-        </div>
-        <p className="text-[14.5px] text-[#333c47] m-0">
-          After payment of <strong>all the required fees</strong>, kindly print
-          two copies of your <strong>Clearance Form</strong> and{" "}
-          <strong>Credit Form</strong> from your dashboard.
-        </p>
-        <ul className="text-[14.5px] text-[#333c47] leading-7 pl-5 my-2">
-          <li>
-            The <strong>Credit Form</strong> should be submitted at{" "}
-            <strong>Debt Recovery Office</strong> in Block A.
-          </li>
-          <li>
-            The <strong>Clearance Form</strong> should be submitted at{" "}
-            <strong>Bursary Unit</strong> in Senate Building upon resumption.
-          </li>
-        </ul>
-        <div className="flex items-center gap-2 text-[13.5px] text-slate-500 mt-1.5">
-          <Info size={14} />
-          Failure to submit these documents may delay your clearance.
+        <div className="mt-6 mb-8 bg-[#eef6fb] border border-[#d6e9f5] rounded-lg px-5 py-4.5">
+          <div className="flex items-center gap-2.5 font-bold text-base text-[#2b3342] mb-2.5">
+            <Info size={18} />
+            Important Note
+          </div>
+          <p className="text-[14.5px] text-[#333c47] m-0">
+            After payment of <strong>all the required fees</strong>, kindly print
+            two copies of your <strong>Clearance Form</strong> and{" "}
+            <strong>Credit Form</strong> from your dashboard.
+          </p>
+          <ul className="text-[14.5px] text-[#333c47] leading-7 pl-5 my-2">
+            <li>
+              The <strong>Credit Form</strong> should be submitted at{" "}
+              <strong>Debt Recovery Office</strong> in Block A.
+            </li>
+            <li>
+              The <strong>Clearance Form</strong> should be submitted at{" "}
+              <strong>Bursary Unit</strong> in Senate Building upon resumption.
+            </li>
+          </ul>
+          <div className="flex items-center gap-2 text-[13.5px] text-slate-500 mt-1.5">
+            <Info size={14} />
+            Failure to submit these documents may delay your clearance.
+          </div>
         </div>
       </div>
     </div>
@@ -821,48 +557,59 @@ function ReceiptView({ payment, onBack }) {
 
 function getPaymentFromLocalStorage() {
   try {
-    // Get hostel selection
+    const paymentStatus = localStorage.getItem("veritas_payment_status");
+    const isPaid = paymentStatus === "success";
+    if (!isPaid) return null;
+
     const hostelSelection = localStorage.getItem("veritas_hostel_selection");
     const hostelData = hostelSelection ? JSON.parse(hostelSelection) : null;
 
-    // Get payment status
-    const paymentStatus = localStorage.getItem("veritas_payment_status");
-    const isPaid = paymentStatus === "success";
-
-    // Get payment reference
-    const paymentRef = localStorage.getItem("veritas_payment_reference");
-
-    // Get student from localStorage
     const studentData = localStorage.getItem("student");
     const student = studentData ? JSON.parse(studentData) : STUDENT;
 
-    // If not paid, return null
-    if (!isPaid) return null;
+    // The ACTUAL verified numbers saved by the payment page right after
+    // Paystack confirmed the transaction (amount, reference, paidAt, plan).
+    // Falls back to sensible defaults only if that record is missing.
+    const lastPaymentRaw = localStorage.getItem("veritas_last_payment");
+    const lastPayment = lastPaymentRaw ? JSON.parse(lastPaymentRaw) : null;
 
-    // Build payment object from localStorage
-    const tuitionFee = 2217850; // Constant
-    const accommodationFee = hostelData?.fee || 395000;
+    const legacyRef = localStorage.getItem("veritas_payment_reference");
+
+    const tuitionFee = lastPayment?.tuitionFee ?? 2217850;
+    const accommodationFee =
+      hostelData?.fee ?? lastPayment?.hostelFee ?? 395000;
     const totalDue = tuitionFee + accommodationFee;
-    const planPercentage = 100; // Default to 100% since we're using localStorage
-    const amountPaid = totalDue; // Full payment since we're using 100%
-    const balance = 0;
+    const amountPaid = lastPayment?.amount ?? totalDue;
+    const balance = Math.max(totalDue - amountPaid, 0);
+    const category = lastPayment?.plan ? `${lastPayment.plan}%` : "100%";
+
+    // A STABLE id/reference — derived from the real Paystack reference so
+    // repeat mounts don't keep generating a "new" payment every time.
+    const rrr =
+      lastPayment?.reference ||
+      legacyRef ||
+      `PSK_${student?.regNo || "9682"}`;
+
+    const date = lastPayment?.paidAt
+      ? new Date(lastPayment.paidAt).toISOString().replace("T", " ").slice(0, 19)
+      : new Date().toISOString().replace("T", " ").slice(0, 19);
 
     return {
-      id: Date.now(), // Unique ID based on timestamp
+      id: rrr,
       matric: student?.regNo || STUDENT.matric,
       session: "2026/2027",
       description: "Tuition and Accommodation Fee",
       amount: amountPaid,
-      rrr: paymentRef || `PSK_${Date.now()}_${student?.regNo || "9682"}`,
+      rrr,
       status: "Successful",
-      date: new Date().toISOString().replace("T", " ").slice(0, 19),
-      category: "100%",
-      tuitionFee: tuitionFee,
-      accommodationFee: accommodationFee,
-      totalDue: totalDue,
+      date,
+      category,
+      tuitionFee,
+      accommodationFee,
+      totalDue,
       vat: 0,
-      amountPaid: amountPaid,
-      balance: balance,
+      amountPaid,
+      balance,
       hostel: hostelData?.hostelName
         ? `${hostelData.hostelName}, ${hostelData.category || ""}`
         : "HOSTEL T, Third Floor,",
@@ -887,19 +634,14 @@ export default function PaymentHistoryPage() {
   const [activeId, setActiveId] = useState(null);
   const [payments, setPayments] = useState([]);
 
-  // Load payments on mount
   useEffect(() => {
-    // Start with mock payments
     let allPayments = [...MOCK_PAYMENTS];
 
-    // Check if there's a new payment in localStorage
     const newPayment = getPaymentFromLocalStorage();
 
     if (newPayment) {
-      // Check if this payment already exists (avoid duplicates)
       const exists = allPayments.some((p) => p.rrr === newPayment.rrr);
       if (!exists) {
-        // Add new payment to the beginning (most recent first)
         allPayments = [newPayment, ...allPayments];
       }
     }
@@ -907,7 +649,6 @@ export default function PaymentHistoryPage() {
     setPayments(allPayments);
   }, []);
 
-  // Listen for payment status changes (when user completes payment)
   useEffect(() => {
     const handleStorageChange = (e) => {
       if (
@@ -931,33 +672,26 @@ export default function PaymentHistoryPage() {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  // ✅ DELETE PAYMENT FUNCTION
   const handleDeletePayment = (id) => {
-    // Find the payment to delete
     const paymentToDelete = payments.find((p) => p.id === id);
 
-    // Show confirmation dialog
     if (
       window.confirm(
         `Are you sure you want to delete this payment?\nRRR: ${paymentToDelete?.rrr}`,
       )
     ) {
-      // Remove from state
       setPayments((prev) => prev.filter((p) => p.id !== id));
 
-      // If the deleted payment was from localStorage, also remove from localStorage
-      if (
-        paymentToDelete &&
-        localStorage.getItem("veritas_payment_reference") ===
-          paymentToDelete.rrr
-      ) {
+      const lastPaymentRaw = localStorage.getItem("veritas_last_payment");
+      const lastPayment = lastPaymentRaw ? JSON.parse(lastPaymentRaw) : null;
+
+      if (paymentToDelete && lastPayment?.reference === paymentToDelete.rrr) {
         localStorage.removeItem("veritas_payment_status");
         localStorage.removeItem("veritas_payment_reference");
-        localStorage.removeItem("veritas_payment_status");
+        localStorage.removeItem("veritas_last_payment");
         console.log("🗑️ Payment removed from localStorage");
       }
 
-      // If the active payment is the one being deleted, close the receipt view
       if (activeId === id) {
         setActiveId(null);
       }

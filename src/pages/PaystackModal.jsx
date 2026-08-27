@@ -89,16 +89,18 @@ function CopyField({ label, value }) {
 function ModalHeader({ onClose }) {
   return (
     <>
-      <div className="flex items-start justify-between px-7 pt-6 pb-4">
+      <div className="flex items-start justify-between px-5 sm:px-7 pt-5 sm:pt-6 pb-4 gap-3">
         <img
           src="https://public-files-paystack-prod.s3.eu-west-1.amazonaws.com/integration-logos/lm6hgcgkeij4c78aog56.png"
           alt="merchant"
-          className="w-9 h-9 rounded"
+          className="w-9 h-9 rounded flex-shrink-0"
         />
-        <div className="text-right">
-          <div className="text-[13px] text-slate-400">{CHECKOUT.email}</div>
-          <div className="text-[15px] text-slate-600">
-            Payid{" "}
+        <div className="text-right min-w-0">
+          <div className="text-[12px] sm:text-[13px] text-slate-400 truncate">
+            {CHECKOUT.email}
+          </div>
+          <div className="text-[14px] sm:text-[15px] text-slate-600">
+            Pay{" "}
             <span className="text-[#1e9e5b] font-bold">
               {naira(CHECKOUT.amount)}
             </span>
@@ -107,7 +109,7 @@ function ModalHeader({ onClose }) {
       </div>
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 bg-transparent border-none cursor-pointer"
+        className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 text-slate-400 hover:text-slate-600 bg-transparent border-none cursor-pointer"
       >
         <X size={18} />
       </button>
@@ -122,8 +124,8 @@ function ModalHeader({ onClose }) {
 
 function CardPane() {
   return (
-    <div className="px-7 py-7">
-      <h3 className="text-center text-[17px] font-semibold text-[#1a1a2e] mb-6">
+    <div className="px-5 sm:px-7 py-6 sm:py-7">
+      <h3 className="text-center text-[16px] sm:text-[17px] font-semibold text-[#1a1a2e] mb-6">
         Enter your card details to pay
       </h3>
 
@@ -171,7 +173,7 @@ function CardPane() {
 
 function OpayPane() {
   return (
-    <div className="px-7 py-14 flex flex-col items-center">
+    <div className="px-5 sm:px-7 py-10 sm:py-14 flex flex-col items-center">
       <div className="flex items-center gap-1.5 mb-8">
         <svg width="26" height="26" viewBox="0 0 26 26">
           <circle
@@ -210,22 +212,22 @@ function TransferPane() {
   const ss = String(secondsLeft % 60).padStart(2, "0");
 
   return (
-    <div className="px-7 py-6">
-      <h3 className="text-[16px] font-bold text-[#1a1a2e] mb-5">
+    <div className="px-5 sm:px-7 py-5 sm:py-6">
+      <h3 className="text-[15px] sm:text-[16px] font-bold text-[#1a1a2e] mb-5">
         Transfer {naira(CHECKOUT.transferAmount)} to PAYSTACK CHECKOUT
       </h3>
 
-      <div className="bg-slate-50 rounded-lg p-5 flex flex-col gap-5">
-        <div className="flex items-start justify-between">
-          <div>
+      <div className="bg-slate-50 rounded-lg p-4 sm:p-5 flex flex-col gap-5">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
             <div className="text-[11px] tracking-wide text-slate-400 uppercase mb-1">
               Bank Name
             </div>
-            <div className="text-[17px] font-semibold text-[#1a1a2e]">
+            <div className="text-[16px] sm:text-[17px] font-semibold text-[#1a1a2e] truncate">
               {CHECKOUT.bankName}
             </div>
           </div>
-          <button className="text-[13px] text-slate-500 hover:text-slate-700 bg-transparent border-none cursor-pointer mt-1">
+          <button className="text-[12px] sm:text-[13px] text-slate-500 hover:text-slate-700 bg-transparent border-none cursor-pointer mt-1 flex-shrink-0 whitespace-nowrap">
             CHANGE BANK
           </button>
         </div>
@@ -235,7 +237,7 @@ function TransferPane() {
 
       <div className="border-t border-dashed border-slate-200 my-6" />
 
-      <p className="text-[14.5px] text-slate-500 leading-relaxed mb-6">
+      <p className="text-[14px] sm:text-[14.5px] text-slate-500 leading-relaxed mb-6">
         Search for{" "}
         <strong className="text-slate-600">{CHECKOUT.bankName}</strong> in your
         bank app. This account is for this transaction only and expires in{" "}
@@ -253,18 +255,21 @@ function TransferPane() {
 
 function UssdPane() {
   return (
-    <div className="px-7 py-8 flex flex-col items-center text-center">
+    <div className="px-5 sm:px-7 py-7 sm:py-8 flex flex-col items-center text-center">
       <div className="w-9 h-9 rounded-md bg-[#8fe3b0] flex items-center justify-center text-[#1a5c37] font-bold text-lg mb-6">
         *#
       </div>
-      <p className="text-[16px] font-semibold text-[#1a1a2e] mb-3 max-w-[300px]">
+      <p className="text-[15px] sm:text-[16px] font-semibold text-[#1a1a2e] mb-3 max-w-[300px]">
         Dial the code below to complete this transaction with{" "}
         {CHECKOUT.ussdBank}
       </p>
-      <a href="#" className="text-[#2f7dc0] text-[14.5px] mb-6 no-underline">
+      <a
+        href="#"
+        className="text-[#2f7dc0] text-[14px] sm:text-[14.5px] mb-6 no-underline"
+      >
         How to pay with GTBank USSD
       </a>
-      <div className="text-[26px] font-bold text-[#1a1a2e] mb-1 tracking-tight">
+      <div className="text-[22px] sm:text-[26px] font-bold text-[#1a1a2e] mb-1 tracking-tight break-all">
         {CHECKOUT.ussdCode}
       </div>
       <div className="text-[13px] text-slate-400 mb-7 cursor-pointer">
@@ -286,9 +291,13 @@ function ZapPane() {
     "zap-payment-" + CHECKOUT.accountNumber,
   )}`;
   return (
-    <div className="px-7 py-7 flex flex-col items-center text-center">
+    <div className="px-5 sm:px-7 py-6 sm:py-7 flex flex-col items-center text-center">
       <div className="border border-slate-200 rounded-xl p-4 mb-6">
-        <img src={qrUrl} alt="Zap QR code" className="w-[170px] h-[170px]" />
+        <img
+          src={qrUrl}
+          alt="Zap QR code"
+          className="w-[150px] h-[150px] sm:w-[170px] sm:h-[170px]"
+        />
       </div>
       <p className="text-[15px] text-[#1a1a2e] font-medium mb-7 max-w-[260px]">
         Scan the QR code to open Zap and complete this payment
@@ -303,7 +312,7 @@ function ZapPane() {
         <div className="w-9 h-9 rounded-md bg-slate-900 text-white flex items-center justify-center font-bold text-sm flex-shrink-0">
           Z
         </div>
-        <div className="text-left text-[13.5px] text-slate-500 leading-snug">
+        <div className="text-left text-[13px] sm:text-[13.5px] text-slate-500 leading-snug">
           Speed up your checkout with Zap.
           <br />
           <span className="text-[#1a1a2e] font-semibold inline-flex items-center gap-1">
@@ -321,8 +330,8 @@ function BankPane() {
     b.toLowerCase().includes(query.toLowerCase()),
   );
   return (
-    <div className="px-7 py-6">
-      <h3 className="text-center text-[16px] font-semibold text-[#1a1a2e] mb-5">
+    <div className="px-5 sm:px-7 py-5 sm:py-6">
+      <h3 className="text-center text-[15px] sm:text-[16px] font-semibold text-[#1a1a2e] mb-5">
         Select your bank to pay {naira(CHECKOUT.amount)}
       </h3>
       <input
@@ -382,15 +391,15 @@ function PaystackModal({ onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/40 flex items-center justify-center p-4">
-      <div className="flex flex-col items-center">
-        <div className="flex shadow-2xl rounded-lg overflow-hidden">
-          {/* LEFT: PAY WITH sidebar */}
-          <div className="w-[230px] bg-[#f7f7f9] pt-7 pb-6 hidden sm:block">
-            <div className="px-6 text-[13px] font-bold tracking-wide text-[#1a1a2e] mb-3">
+    <div className="fixed inset-0 z-50 bg-slate-900/40 flex items-center justify-center p-2 sm:p-4">
+      <div className="flex flex-col items-center w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row shadow-2xl rounded-lg overflow-hidden w-full sm:w-auto bg-white">
+          {/* PAY WITH — horizontal scrollable pills on mobile, vertical sidebar from sm up */}
+          <div className="w-full sm:w-[230px] bg-[#f7f7f9] pt-3 sm:pt-7 pb-2 sm:pb-6 border-b sm:border-b-0 border-slate-200">
+            <div className="px-4 sm:px-6 text-[12px] sm:text-[13px] font-bold tracking-wide text-[#1a1a2e] mb-2 sm:mb-3">
               PAY WITH
             </div>
-            <div className="flex flex-col">
+            <div className="flex sm:flex-col overflow-x-auto sm:overflow-visible gap-2 sm:gap-0 px-4 sm:px-0 pb-2 sm:pb-0 no-scrollbar">
               {TABS.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.key;
@@ -398,14 +407,21 @@ function PaystackModal({ onClose }) {
                   <button
                     key={tab.key}
                     onClick={() => setActiveTab(tab.key)}
-                    className={`relative flex items-center gap-3 px-6 py-3 text-left text-[14.5px] bg-transparent border-none cursor-pointer border-t border-slate-200 first:border-t-0 ${
-                      isActive
-                        ? "text-[#1e9e5b] font-semibold"
-                        : "text-[#1a1a2e]"
-                    }`}
+                    className={`relative flex items-center gap-2 sm:gap-3 flex-shrink-0 whitespace-nowrap
+                      px-4 py-2 sm:px-6 sm:py-3
+                      text-[13.5px] sm:text-[14.5px] text-left
+                      bg-white sm:bg-transparent
+                      border sm:border-none sm:border-t border-slate-200 sm:first:border-t-0
+                      rounded-full sm:rounded-none
+                      cursor-pointer transition-colors
+                      ${
+                        isActive
+                          ? "text-[#1e9e5b] font-semibold border-[#1e9e5b] sm:border-t-slate-200"
+                          : "text-[#1a1a2e]"
+                      }`}
                   >
                     {isActive && (
-                      <span className="absolute right-0 top-0 bottom-0 w-[3px] bg-[#1e9e5b]" />
+                      <span className="hidden sm:block absolute right-0 top-0 bottom-0 w-[3px] bg-[#1e9e5b]" />
                     )}
                     {tab.badge && (
                       <span className="bg-[#e0364d] text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
@@ -414,7 +430,7 @@ function PaystackModal({ onClose }) {
                     )}
                     {Icon && (
                       <Icon
-                        size={16}
+                        size={15}
                         className={
                           isActive ? "text-[#1e9e5b]" : "text-slate-500"
                         }
@@ -428,17 +444,24 @@ function PaystackModal({ onClose }) {
           </div>
 
           {/* RIGHT: active pane */}
-          <div className="relative w-[400px] max-w-[92vw] bg-white">
+          <div className="relative w-full sm:w-[400px] sm:max-w-[92vw] bg-white">
             <ModalHeader onClose={onClose} />
-            <div className="max-h-[70vh] overflow-y-auto">{renderPane()}</div>
+            <div className="max-h-[65vh] sm:max-h-[70vh] overflow-y-auto">
+              {renderPane()}
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-slate-500 text-[13.5px] mt-5">
+        <div className="flex items-center gap-2 text-slate-500 text-[13px] sm:text-[13.5px] mt-4 sm:mt-5">
           <Lock size={13} />
           Secured by <span className="font-bold text-[#1a1a2e]">paystack</span>
         </div>
       </div>
+
+      <style>{`
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      `}</style>
     </div>
   );
 }
